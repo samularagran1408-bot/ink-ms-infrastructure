@@ -1,0 +1,17 @@
+{
+  "folders": [
+    { "path": ".", "name": "inklusport-microservicios" },
+    { "path": "ink-ms-common", "name": "ink-ms-common" },
+    { "path": "ink-ms-auth", "name": "ink-ms-auth" },
+    { "path": "ink-ms-users", "name": "ink-ms-users" },
+    { "path": "eureka-server", "name": "eureka-server" },
+    { "path": "api-gateway", "name": "api-gateway" },
+    { "path": "sports-events-ms", "name": "sports-events-ms" },
+    { "path": "accessibility-ms", "name": "accessibility-ms" },
+    { "path": "admin-ms", "name": "admin-ms" },
+    { "path": "ink-ms-reports", "name": "ink-ms-reports" },
+    { "path": "search-ms", "name": "search-ms" },
+    { "path": "ai-assistant-ms", "name": "ai-assistant-ms" }
+  ],
+  "settings": {}
+}

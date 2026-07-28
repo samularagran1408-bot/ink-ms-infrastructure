@@ -1,0 +1,209 @@
+networks:
+  inklusport-network:
+    driver: bridge
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: inklusport-mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: auth_ms
+    volumes:
+      - ./init-mysql:/docker-entrypoint-initdb.d
+      - mysql_data:/var/lib/mysql
+    networks:
+      - inklusport-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "--silent"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+      start_period: 30s
+
+  mongodb:
+    image: mongo:6.0
+    container_name: inklusport-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: accessibility_notifications_db
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - inklusport-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mongosh",
+          "--quiet",
+          "-u",
+          "admin",
+          "-p",
+          "admin123",
+          "--authenticationDatabase",
+          "admin",
+          "--eval",
+          "db.runCommand({ ping: 1 }).ok",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+      start_period: 20s
+
+  auth-service:
+    build:
+      context: ./ink-ms-auth
+      dockerfile: Dockerfile
+    container_name: ink-ms-auth
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - inklusport-network
+
+  users-service:
+    build:
+      context: ./ink-ms-users
+      dockerfile: Dockerfile
+    container_name: ink-ms-users
+    restart: always
+    ports:
+      - "3002:3002"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - inklusport-network
+
+  sports-service:
+    build:
+      context: ./ink-ms-sports
+      dockerfile: Dockerfile
+    container_name: ink-ms-sports
+    restart: always
+    ports:
+      - "3003:3003"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - inklusport-network
+
+  accessibility-service:
+    build:
+      context: ./ink-ms-accesibility
+      dockerfile: Dockerfile
+    container_name: ink-ms-accessibility
+    restart: always
+    ports:
+      - "3004:3004"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      MONGODB_URI: mongodb://admin:admin123@mongodb:27017/accessibility_notifications_db?authSource=admin
+      MONGODB_DB: accessibility_notifications_db
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - inklusport-network
+
+  reports-service:
+    build:
+      context: ./ink-ms-reports
+      dockerfile: Dockerfile
+    container_name: ink-ms-reports
+    restart: always
+    ports:
+      - "3006:3006"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - inklusport-network
+
+  ai-service:
+    build:
+      context: ./ink-ms-ai-assistant
+      dockerfile: Dockerfile
+    container_name: ink-ms-ai-python
+    restart: always
+    ports:
+      - "3008:3008"
+    env_file:
+      - ./ink-ms-ai-assistant/.env
+    environment:
+      MONGODB_URI: mongodb://admin:admin123@mongodb:27017/
+      MONGODB_DB: inclusport_training_ia
+      AUTH_SERVICE_URL: http://auth-service:3001
+      USERS_SERVICE_URL: http://users-service:3002
+      SPORTS_SERVICE_URL: http://sports-service:3003
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      users-service:
+        condition: service_started
+      sports-service:
+        condition: service_started
+    networks:
+      - inklusport-network
+
+  gateway-service:
+    build:
+      context: ./ink-ms-gateway
+      dockerfile: Dockerfile
+    container_name: ink-ms-gateway
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - auth-service
+      - users-service
+      - sports-service
+      - accessibility-service
+      - reports-service
+      - ai-service
+    networks:
+      - inklusport-network
+
+volumes:
+  mysql_data:
+  mongodb_data:

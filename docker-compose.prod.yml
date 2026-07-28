@@ -1,0 +1,140 @@
+# Compose de despliegue remoto. NO es el de desarrollo: usar docker-compose.yml
+# para trabajar en local.
+#
+# Diferencias respecto al local, y por qué:
+#   - No incluye MySQL ni MongoDB. En plataformas de contenedores gestionadas el
+#     almacenamiento del contenedor es efímero, así que las bases van fuera
+#     (Azure Database for MySQL, MongoDB Atlas o Cosmos DB con API de Mongo).
+#   - No construye imágenes: las toma de un registry. En ECS, Container Apps o
+#     Cloud Run no hay servidor donde compilar.
+#   - Sólo el gateway publica puerto. El resto se alcanza por la red interna, de
+#     modo que ninguna base de datos ni servicio interno queda expuesto.
+#
+# Uso en un servidor propio:      docker compose -f docker-compose.prod.yml up -d
+# Uso con Azure Container Apps:   az containerapp compose create \
+#                                   -g <grupo> --environment <entorno> \
+#                                   --compose-file-path docker-compose.prod.yml
+
+networks:
+  inklusport-network:
+    driver: bridge
+
+x-java-common: &java-common
+  restart: always
+  networks:
+    - inklusport-network
+  environment: &java-env
+    SPRING_PROFILES_ACTIVE: docker
+    JWT_SECRET: ${JWT_SECRET:?falta JWT_SECRET}
+    JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+    # En producción se registra a nivel INFO y sin volcar cada consulta SQL.
+    LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    SHOW_SQL: ${SHOW_SQL:-false}
+    # validate en lugar de update: el esquema se aplica con los scripts de
+    # init-mysql/, no dejando que Hibernate altere tablas en caliente.
+    JPA_DDL_AUTO: ${JPA_DDL_AUTO:-validate}
+
+services:
+  auth-service:
+    <<: *java-common
+    image: ${REGISTRY:?falta REGISTRY}/ink-ms-auth:${TAG:-latest}
+    environment:
+      <<: *java-env
+      MYSQL_URL: ${AUTH_MYSQL_URL:?falta AUTH_MYSQL_URL}
+      MYSQL_USER: ${MYSQL_USER:?falta MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?falta MYSQL_PASSWORD}
+      USERS_SERVICE_URL: http://users-service:3002
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-465}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_PROTOCOL: ${MAIL_PROTOCOL:-smtps}
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
+      EXPOSE_TOKEN: "false"
+
+  users-service:
+    <<: *java-common
+    image: ${REGISTRY:?falta REGISTRY}/ink-ms-users:${TAG:-latest}
+    environment:
+      <<: *java-env
+      MYSQL_URL: ${USERS_MYSQL_URL:?falta USERS_MYSQL_URL}
+      MYSQL_USER: ${MYSQL_USER:?falta MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?falta MYSQL_PASSWORD}
+      AUTH_SERVICE_URL: http://auth-service:3001
+
+  sports-service:
+    <<: *java-common
+    image: ${REGISTRY:?falta REGISTRY}/ink-ms-sports:${TAG:-latest}
+    environment:
+      <<: *java-env
+      MYSQL_URL: ${SPORTS_MYSQL_URL:?falta SPORTS_MYSQL_URL}
+      MYSQL_USER: ${MYSQL_USER:?falta MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?falta MYSQL_PASSWORD}
+      AUTH_SERVICE_URL: http://auth-service:3001
+      ACCESSIBILITY_SERVICE_URL: http://accessibility-service:3004
+
+  accessibility-service:
+    <<: *java-common
+    image: ${REGISTRY:?falta REGISTRY}/ink-ms-accessibility:${TAG:-latest}
+    environment:
+      <<: *java-env
+      MONGODB_URI: ${MONGODB_URI:?falta MONGODB_URI}
+      MONGODB_DB: ${MONGODB_DB:-accessibility_notifications_db}
+      AUTH_SERVICE_URL: http://auth-service:3001
+
+  reports-service:
+    <<: *java-common
+    image: ${REGISTRY:?falta REGISTRY}/ink-ms-reports:${TAG:-latest}
+    environment:
+      <<: *java-env
+      MYSQL_URL: ${REPORTS_MYSQL_URL:?falta REPORTS_MYSQL_URL}
+      MYSQL_USER: ${MYSQL_USER:?falta MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?falta MYSQL_PASSWORD}
+      AUTH_SERVICE_URL: http://auth-service:3001
+      USERS_SERVICE_URL: http://users-service:3002
+      SPORTS_SERVICE_URL: http://sports-service:3003
+      ACCESSIBILITY_SERVICE_URL: http://accessibility-service:3004
+
+  ai-service:
+    image: ${REGISTRY:?falta REGISTRY}/ink-ms-ai-assistant:${TAG:-latest}
+    restart: always
+    networks:
+      - inklusport-network
+    environment:
+      MONGODB_URI: ${AI_MONGODB_URI:?falta AI_MONGODB_URI}
+      MONGODB_DB: ${AI_MONGODB_DB:-inclusport_training_ia}
+      AUTH_SERVICE_URL: http://auth-service:3001
+      USERS_SERVICE_URL: http://users-service:3002
+      SPORTS_SERVICE_URL: http://sports-service:3003
+      LLM_ENABLED: ${LLM_ENABLED:-true}
+      LLM_PROVIDER: ${LLM_PROVIDER:-openrouter}
+      LLM_API_KEY: ${LLM_API_KEY:?falta LLM_API_KEY}
+      LLM_API_URL: ${LLM_API_URL:-https://openrouter.ai/api/v1/chat/completions}
+      LLM_MODEL: ${LLM_MODEL:-google/gemma-4-31b-it:free}
+
+  # Único servicio con puerto publicado: es la puerta de entrada.
+  # Debe quedar detrás de HTTPS (ingress gestionado en Container Apps, o un
+  # reverse proxy como Caddy si se despliega en un servidor propio).
+  gateway-service:
+    image: ${REGISTRY:?falta REGISTRY}/ink-ms-gateway:${TAG:-latest}
+    restart: always
+    networks:
+      - inklusport-network
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      AUTH_SERVICE_URL: http://auth-service:3001
+      USERS_SERVICE_URL: http://users-service:3002
+      SPORTS_SERVICE_URL: http://sports-service:3003
+      ACCESSIBILITY_SERVICE_URL: http://accessibility-service:3004
+      REPORTS_SERVICE_URL: http://reports-service:3006
+      AI_SERVICE_URL: http://ai-service:3008
+    depends_on:
+      - auth-service
+      - users-service
+      - sports-service
+      - accessibility-service
+      - reports-service
+      - ai-service

@@ -1,0 +1,22 @@
+# Ignorar archivos de IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# Ignorar logs
+*.log
+logs/
+
+# Ignorar archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Ignorar node_modules / venv (no se necesitan en la imagen)
+node_modules/
+**/venv/
+**/.git/
+
+# Nota: NO ignorar target/*.jar — los Dockerfiles copian el JAR precompilado

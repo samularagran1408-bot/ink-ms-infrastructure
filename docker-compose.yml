@@ -1,0 +1,264 @@
+networks:
+  inklusport-network:
+    driver: bridge
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: inklusport-mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: auth_ms
+    volumes:
+      - ./init-mysql:/docker-entrypoint-initdb.d
+      - mysql_data:/var/lib/mysql
+    networks:
+      - inklusport-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "--silent"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+      start_period: 30s
+
+  mongodb:
+    image: mongo:6.0
+    container_name: inklusport-mongodb
+    restart: always
+    ports:
+      # 27018 en el host: el 27017 lo suele ocupar un MongoDB instalado en la
+      # máquina, y al resolver "localhost" ganaba el nativo, de modo que las
+      # herramientas del host acababan leyendo la base equivocada.
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-admin123}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-accessibility_notifications_db}
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - inklusport-network
+    healthcheck:
+      # Lee las credenciales del propio entorno del contenedor para que el
+      # healthcheck siga funcionando si se cambia la contraseña en .env.
+      test:
+        [
+          "CMD-SHELL",
+          'mongosh --quiet -u "$$MONGO_INITDB_ROOT_USERNAME" -p "$$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --eval "db.runCommand({ ping: 1 }).ok"',
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+      start_period: 20s
+
+  # LLM local, opcional. Sólo arranca con:  docker compose --profile llm-local up -d
+  # Se deja fuera del arranque por defecto porque descargar la imagen y el modelo
+  # son varios GB; el asistente funciona sin LLM y lo usa si lo encuentra.
+  ollama:
+    image: ollama/ollama:latest
+    container_name: inklusport-ollama
+    restart: always
+    profiles: ["llm-local"]
+    ports:
+      - "11434:11434"
+    environment:
+      # Mantiene el modelo cargado en RAM entre peticiones: sin esto cada consulta
+      # al asistente pagaría de nuevo el arranque en frío del modelo.
+      OLLAMA_KEEP_ALIVE: "24h"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+      OLLAMA_NUM_PARALLEL: "1"
+    volumes:
+      - ollama_models:/root/.ollama
+    networks:
+      - inklusport-network
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 20s
+
+  # Descarga el modelo una sola vez y termina. El volumen ollama_models lo conserva,
+  # así que en arranques posteriores sale de inmediato.
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: inklusport-ollama-init
+    restart: "no"
+    profiles: ["llm-local"]
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:3b}
+    entrypoint: ["/bin/sh", "-c"]
+    command: 'ollama pull "$$OLLAMA_MODEL" && ollama list'
+    depends_on:
+      ollama:
+        condition: service_healthy
+    networks:
+      - inklusport-network
+
+  # Los servicios Java ya no llevan el secreto JWT dentro del jar: se pasa por
+  # entorno desde .env. La sintaxis :? hace que compose falle con un mensaje claro
+  # si la variable no está definida, en vez de arrancar y fallar más tarde.
+  auth-service:
+    build:
+      context: ./ink-ms-auth
+      dockerfile: Dockerfile
+    container_name: ink-ms-auth
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-465}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_PROTOCOL: ${MAIL_PROTOCOL:-smtps}
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - inklusport-network
+
+  users-service:
+    build:
+      context: ./ink-ms-users
+      dockerfile: Dockerfile
+    container_name: ink-ms-users
+    restart: always
+    ports:
+      - "3002:3002"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - inklusport-network
+
+  sports-service:
+    build:
+      context: ./ink-ms-sports
+      dockerfile: Dockerfile
+    container_name: ink-ms-sports
+    restart: always
+    ports:
+      - "3003:3003"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - inklusport-network
+
+  accessibility-service:
+    build:
+      context: ./ink-ms-accesibility
+      dockerfile: Dockerfile
+    container_name: ink-ms-accessibility
+    restart: always
+    ports:
+      - "3004:3004"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      MONGODB_URI: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-admin123}@mongodb:27017/${MONGO_DATABASE:-accessibility_notifications_db}?authSource=admin
+      MONGODB_DB: ${MONGO_DATABASE:-accessibility_notifications_db}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - inklusport-network
+
+  reports-service:
+    build:
+      context: ./ink-ms-reports
+      dockerfile: Dockerfile
+    container_name: ink-ms-reports
+    restart: always
+    ports:
+      - "3006:3006"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - inklusport-network
+
+  ai-service:
+    build:
+      context: ./ink-ms-ai-assistant
+      dockerfile: Dockerfile
+    container_name: ink-ms-ai-python
+    restart: always
+    ports:
+      - "3008:3008"
+    env_file:
+      - ./ink-ms-ai-assistant/.env
+    environment:
+      MONGODB_URI: mongodb://admin:admin123@mongodb:27017/
+      MONGODB_DB: inclusport_training_ia
+      AUTH_SERVICE_URL: http://auth-service:3001
+      USERS_SERVICE_URL: http://users-service:3002
+      SPORTS_SERVICE_URL: http://sports-service:3003
+      # El LLM se configura sólo en ink-ms-ai-assistant/.env (cargado arriba con
+      # env_file) para no tener la clave y el modelo repartidos en dos sitios.
+      # Si activas el perfil llm-local, apunta allí LLM_API_URL a
+      # http://ollama:11434/v1/chat/completions, que es el nombre en esta red.
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      users-service:
+        condition: service_started
+      sports-service:
+        condition: service_started
+    networks:
+      - inklusport-network
+
+  gateway-service:
+    build:
+      context: ./ink-ms-gateway
+      dockerfile: Dockerfile
+    container_name: ink-ms-gateway
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - auth-service
+      - users-service
+      - sports-service
+      - accessibility-service
+      - reports-service
+      - ai-service
+    networks:
+      - inklusport-network
+
+volumes:
+  mysql_data:
+  mongodb_data:
+  ollama_models:
