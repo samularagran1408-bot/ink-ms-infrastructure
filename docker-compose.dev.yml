@@ -70,6 +70,7 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
     depends_on:
       mysql:
         condition: service_healthy
@@ -201,6 +202,19 @@ services:
       - accessibility-service
       - reports-service
       - ai-service
+    networks:
+      - inklusport-network
+
+  # Acceso público (Postman / clientes): cloudflared → gateway:8080.
+  # En Cloudflare Zero Trust el hostname inklusport.inklusport.uk debe
+  # apuntar al servicio http://gateway-service:8080 (no a un frontend).
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: inklusport-cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TOKEN}
+    depends_on:
+      - gateway-service
     networks:
       - inklusport-network
 

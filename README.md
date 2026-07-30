@@ -14,8 +14,17 @@ despliegue. El código de cada microservicio vive en su propio repositorio.
 | Reports | `ink-ms-reports` | 3006 | MySQL `analytics_ms` |
 | Asistente IA | `ink-ms-ai-assistant` | 3008 | MongoDB |
 
-Para trabajar hay que clonar los siete repositorios como carpetas hermanas de este
-fichero, porque el compose de desarrollo construye desde esas rutas.
+Para trabajar hay que clonar los siete repositorios de microservicios como
+carpetas hermanas de este fichero, porque el compose de desarrollo construye
+desde esas rutas. El frontend vive en su propio repositorio y se clona aparte
+cuando haga falta; no forma parte de este compose.
+
+## Acceso público (Postman)
+
+Con `CLOUDFLARE_TOKEN` definido, el contenedor `cloudflared` publica el gateway
+en http://inklusport.inklusport.uk/. Las peticiones van a rutas `/api/...`
+(por ejemplo `/api/auth/login`). En el túnel de Cloudflare Zero Trust el
+hostname debe apuntar a `http://gateway-service:8080`.
 
 ## Arranque local
 
