@@ -159,6 +159,9 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      ACCESSIBILITY_SERVICE_URL: http://accessibility-service:3004
+      USERS_SERVICE_URL: http://users-service:3002
+      NOTIFICATION_ADMIN_EMAILS: ${NOTIFICATION_ADMIN_EMAILS:-}
     depends_on:
       mysql:
         condition: service_healthy
@@ -181,6 +184,12 @@ services:
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
       MONGODB_URI: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-admin123}@mongodb:27017/${MONGO_DATABASE:-accessibility_notifications_db}?authSource=admin
       MONGODB_DB: ${MONGO_DATABASE:-accessibility_notifications_db}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-465}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_PROTOCOL: ${MAIL_PROTOCOL:-smtps}
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
     depends_on:
       mongodb:
         condition: service_healthy
@@ -209,6 +218,32 @@ services:
     networks:
       - inklusport-network
 
+  subscriptions-service:
+    build:
+      context: ./ink-ms-suscriptions
+      dockerfile: Dockerfile
+    container_name: ink-ms-suscriptions
+    restart: always
+    ports:
+      - "3005:3005"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-465}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
+      PAYMENT_GATEWAY_MODE: ${PAYMENT_GATEWAY_MODE:-mock}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - inklusport-network
+
   ai-service:
     build:
       context: ./ink-ms-ai-assistant
@@ -225,6 +260,8 @@ services:
       AUTH_SERVICE_URL: http://auth-service:3001
       USERS_SERVICE_URL: http://users-service:3002
       SPORTS_SERVICE_URL: http://sports-service:3003
+      ACCESSIBILITY_SERVICE_URL: http://accessibility-service:3004
+      REPORTS_SERVICE_URL: http://reports-service:3006
       # El LLM se configura sólo en ink-ms-ai-assistant/.env (cargado arriba con
       # env_file) para no tener la clave y el modelo repartidos en dos sitios.
       # Si activas el perfil llm-local, apunta allí LLM_API_URL a
@@ -235,6 +272,10 @@ services:
       users-service:
         condition: service_started
       sports-service:
+        condition: service_started
+      accessibility-service:
+        condition: service_started
+      reports-service:
         condition: service_started
     networks:
       - inklusport-network
@@ -249,12 +290,20 @@ services:
       - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      AUTH_SERVICE_URL: http://auth-service:3001
+      USERS_SERVICE_URL: http://users-service:3002
+      SPORTS_SERVICE_URL: http://sports-service:3003
+      ACCESSIBILITY_SERVICE_URL: http://accessibility-service:3004
+      REPORTS_SERVICE_URL: http://reports-service:3006
+      SUBSCRIPTIONS_SERVICE_URL: http://subscriptions-service:3005
+      AI_SERVICE_URL: http://ai-service:3008
     depends_on:
       - auth-service
       - users-service
       - sports-service
       - accessibility-service
       - reports-service
+      - subscriptions-service
       - ai-service
     networks:
       - inklusport-network

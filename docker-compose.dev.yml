@@ -159,6 +159,28 @@ services:
     networks:
       - inklusport-network
 
+  subscriptions-service:
+    build:
+      context: ./ink-ms-suscriptions
+      dockerfile: Dockerfile
+    container_name: ink-ms-suscriptions
+    restart: always
+    ports:
+      - "3005:3005"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
+      PAYMENT_GATEWAY_MODE: ${PAYMENT_GATEWAY_MODE:-mock}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - inklusport-network
+
   ai-service:
     build:
       context: ./ink-ms-ai-assistant
@@ -175,12 +197,18 @@ services:
       AUTH_SERVICE_URL: http://auth-service:3001
       USERS_SERVICE_URL: http://users-service:3002
       SPORTS_SERVICE_URL: http://sports-service:3003
+      ACCESSIBILITY_SERVICE_URL: http://accessibility-service:3004
+      REPORTS_SERVICE_URL: http://reports-service:3006
     depends_on:
       mongodb:
         condition: service_healthy
       users-service:
         condition: service_started
       sports-service:
+        condition: service_started
+      accessibility-service:
+        condition: service_started
+      reports-service:
         condition: service_started
     networks:
       - inklusport-network
@@ -195,12 +223,20 @@ services:
       - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      AUTH_SERVICE_URL: http://auth-service:3001
+      USERS_SERVICE_URL: http://users-service:3002
+      SPORTS_SERVICE_URL: http://sports-service:3003
+      ACCESSIBILITY_SERVICE_URL: http://accessibility-service:3004
+      REPORTS_SERVICE_URL: http://reports-service:3006
+      SUBSCRIPTIONS_SERVICE_URL: http://subscriptions-service:3005
+      AI_SERVICE_URL: http://ai-service:3008
     depends_on:
       - auth-service
       - users-service
       - sports-service
       - accessibility-service
       - reports-service
+      - subscriptions-service
       - ai-service
     networks:
       - inklusport-network

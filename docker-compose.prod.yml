@@ -95,6 +95,25 @@ services:
       SPORTS_SERVICE_URL: http://sports-service:3003
       ACCESSIBILITY_SERVICE_URL: http://accessibility-service:3004
 
+  subscriptions-service:
+    <<: *java-common
+    image: ${REGISTRY:?falta REGISTRY}/ink-ms-suscriptions:${TAG:-latest}
+    environment:
+      <<: *java-env
+      MYSQL_URL: ${SUBSCRIPTIONS_MYSQL_URL:?falta SUBSCRIPTIONS_MYSQL_URL}
+      MYSQL_USER: ${MYSQL_USER:?falta MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?falta MYSQL_PASSWORD}
+      AUTH_SERVICE_URL: http://auth-service:3001
+      USERS_SERVICE_URL: http://users-service:3002
+      SPORTS_SERVICE_URL: http://sports-service:3003
+      ACCESSIBILITY_SERVICE_URL: http://accessibility-service:3004
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-465}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
+      PAYMENT_GATEWAY_MODE: ${PAYMENT_GATEWAY_MODE:-mock}
+
   ai-service:
     image: ${REGISTRY:?falta REGISTRY}/ink-ms-ai-assistant:${TAG:-latest}
     restart: always
@@ -106,11 +125,15 @@ services:
       AUTH_SERVICE_URL: http://auth-service:3001
       USERS_SERVICE_URL: http://users-service:3002
       SPORTS_SERVICE_URL: http://sports-service:3003
+      ACCESSIBILITY_SERVICE_URL: http://accessibility-service:3004
+      REPORTS_SERVICE_URL: http://reports-service:3006
       LLM_ENABLED: ${LLM_ENABLED:-true}
       LLM_PROVIDER: ${LLM_PROVIDER:-openrouter}
       LLM_API_KEY: ${LLM_API_KEY:?falta LLM_API_KEY}
       LLM_API_URL: ${LLM_API_URL:-https://openrouter.ai/api/v1/chat/completions}
       LLM_MODEL: ${LLM_MODEL:-google/gemma-4-31b-it:free}
+      LLM_TIMEOUT: ${LLM_TIMEOUT:-120}
+      LLM_COOLDOWN_SEGUNDOS: ${LLM_COOLDOWN_SEGUNDOS:-60}
 
   # Único servicio con puerto publicado: es la puerta de entrada.
   # Debe quedar detrás de HTTPS (ingress gestionado en Container Apps, o un
@@ -130,6 +153,7 @@ services:
       SPORTS_SERVICE_URL: http://sports-service:3003
       ACCESSIBILITY_SERVICE_URL: http://accessibility-service:3004
       REPORTS_SERVICE_URL: http://reports-service:3006
+      SUBSCRIPTIONS_SERVICE_URL: http://subscriptions-service:3005
       AI_SERVICE_URL: http://ai-service:3008
     depends_on:
       - auth-service
@@ -137,4 +161,5 @@ services:
       - sports-service
       - accessibility-service
       - reports-service
+      - subscriptions-service
       - ai-service

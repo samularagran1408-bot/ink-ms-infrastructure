@@ -8,6 +8,7 @@ $services = @(
     "ink-ms-sports",
     "ink-ms-accesibility",
     "ink-ms-reports",
+    "ink-ms-suscriptions",
     "ink-ms-gateway"
 )
 

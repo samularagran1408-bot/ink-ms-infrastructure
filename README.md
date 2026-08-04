@@ -11,13 +11,14 @@ despliegue. El código de cada microservicio vive en su propio repositorio.
 | Users | `ink-ms-users` | 3002 | MySQL `user_ms` |
 | Sports | `ink-ms-sports` | 3003 | MySQL `sports_events_ms` |
 | Accessibility | `ink-ms-accesibility` | 3004 | MongoDB |
+| Subscriptions | `ink-ms-suscriptions` | 3005 | MySQL `inklusport_subscriptions` |
 | Reports | `ink-ms-reports` | 3006 | MySQL `analytics_ms` |
 | Asistente IA | `ink-ms-ai-assistant` | 3008 | MongoDB |
 
-Para trabajar hay que clonar los siete repositorios de microservicios como
-carpetas hermanas de este fichero, porque el compose de desarrollo construye
-desde esas rutas. El frontend vive en su propio repositorio y se clona aparte
-cuando haga falta; no forma parte de este compose.
+Para trabajar hay que clonar los repositorios de microservicios como carpetas
+hermanas de este fichero, porque el compose de desarrollo construye desde esas
+rutas. El frontend vive en su propio repositorio y se clona aparte cuando haga
+falta; no forma parte de este compose.
 
 ## Acceso público (Postman)
 
@@ -25,6 +26,48 @@ Con `CLOUDFLARE_TOKEN` definido, el contenedor `cloudflared` publica el gateway
 en http://inklusport.inklusport.uk/. Las peticiones van a rutas `/api/...`
 (por ejemplo `/api/auth/login`). En el túnel de Cloudflare Zero Trust el
 hostname debe apuntar a `http://gateway-service:8080`.
+
+### Asistente IA (chatbot / agente)
+
+Todo `/api/ai/**` sale por el gateway (timeout 180 s). Ejemplos públicos:
+
+| Método | Ruta | Uso |
+|--------|------|-----|
+| GET | `/api/ai/health` | Estado del agente, LLM y MongoDB |
+| POST | `/api/ai/chat/` | Chat del agente (JSON) |
+| POST | `/api/ai/chat/stream` | Chat con eventos SSE |
+| POST | `/api/ai/rutinas/generar` | Rutina adaptada (IA) |
+| POST | `/api/ai/ejercicios/adaptar` | Adaptar ejercicio (RF42) |
+| POST | `/api/ai/riesgo/lesiones/{userId}` | Riesgo de lesión (RF43) |
+| GET | `/api/ai/dashboard/{userId}` | Dashboard agregado (RF47) |
+| GET | `/api/ai/progreso/comparativa/{userId}` | Comparativa de progreso (RF48) |
+| GET | `/api/ai/recomendacion/eventos/{id}` | Eventos recomendados |
+| POST | `/api/ai/competencia/modo/{userId}` | Modo competencia (RF53) |
+| POST | `/api/ai/alertas/{entrenadorId}` | Alertas a entrenador (RF55) |
+| POST | `/api/ai/quiz/...` | Quices organizador/entrenador |
+
+Rutinas de entrenador (dominio sports, no IA):
+
+| Método | Ruta | Uso |
+|--------|------|-----|
+| POST | `/api/routines` | Entrenador crea rutina (draft) |
+| POST | `/api/routines/{id}/publish` | Publicar (exige quiz entrenador ≥ 75) |
+| GET | `/api/routines` | Listar rutinas publicadas |
+| POST | `/api/routine-registrations` | Usuario se inscribe |
+| GET | `/api/routine-registrations/user/{userId}` | Rutinas del usuario |
+
+Flujo: quiz entrenador (`/api/ai/quiz/trainer/...`) → verificar → publicar rutina → inscripción usuario.
+
+```http
+POST https://inklusport.inklusport.uk/api/ai/chat/
+Content-Type: application/json
+Authorization: Bearer <jwt>
+
+{ "mensaje": "¿Qué eventos hay?", "disability_type": "visual" }
+```
+
+La clave del LLM se configura en `ink-ms-ai-assistant/.env` (local) o con
+`LLM_API_KEY` / `AI_MONGODB_URI` en `.env.prod`.
 
 ## Arranque local
 
@@ -92,8 +135,8 @@ az group create --name inklusport-rg --location <region>
 az acr create --resource-group inklusport-rg --name <acr> --sku Basic
 az acr login --name <acr>
 
-# 2. Construir y subir las siete imágenes
-for s in auth users sports accesibility reports gateway; do
+# 2. Construir y subir las imágenes
+for s in auth users sports accesibility reports suscriptions gateway; do
   docker build -t <acr>.azurecr.io/ink-ms-$s:v1 ../ink-ms-$s
   docker push <acr>.azurecr.io/ink-ms-$s:v1
 done
