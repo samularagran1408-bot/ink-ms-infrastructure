@@ -139,10 +139,14 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      ACCESSIBILITY_SERVICE_URL: http://accessibility-service:3004
+      NOTIFICATION_ADMIN_EMAILS: ${NOTIFICATION_ADMIN_EMAILS:-}
     depends_on:
       mysql:
         condition: service_healthy
       auth-service:
+        condition: service_started
+      accessibility-service:
         condition: service_started
     networks:
       - inklusport-network
@@ -308,16 +312,31 @@ services:
     networks:
       - inklusport-network
 
-  # Acceso público (Postman / clientes): cloudflared → gateway:8080.
+  # SPA Angular + proxy /api → gateway. El túnel público apunta aquí para
+  # que el navegador abra la web y Postman siga usando /api/...
+  frontend-service:
+    build:
+      context: ./ink-ms-frontend
+      dockerfile: Dockerfile
+    container_name: ink-ms-frontend
+    restart: always
+    ports:
+      - "8088:80"
+    depends_on:
+      - gateway-service
+    networks:
+      - inklusport-network
+
+  # Acceso público: cloudflared → frontend:80 (HTML + /api proxy).
   # En Cloudflare Zero Trust el hostname inklusport.inklusport.uk debe
-  # apuntar al servicio http://gateway-service:8080 (no a un frontend).
+  # apuntar a http://frontend-service:80 (antes era gateway:8080).
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: inklusport-cloudflared
     restart: unless-stopped
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TOKEN}
     depends_on:
-      - gateway-service
+      - frontend-service
     networks:
       - inklusport-network
 
@@ -325,6 +344,3 @@ volumes:
   mysql_data:
   mongodb_data:
   ollama_models:
-
-
-  

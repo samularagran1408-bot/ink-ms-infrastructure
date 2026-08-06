@@ -17,15 +17,20 @@ despliegue. El código de cada microservicio vive en su propio repositorio.
 
 Para trabajar hay que clonar los repositorios de microservicios como carpetas
 hermanas de este fichero, porque el compose de desarrollo construye desde esas
-rutas. El frontend vive en su propio repositorio y se clona aparte cuando haga
-falta; no forma parte de este compose.
+rutas. El frontend (`ink-ms-frontend`) también se clona aquí: el compose lo
+sirve con nginx y proxea `/api` al gateway.
 
-## Acceso público (Postman)
+## Acceso público (navegador y Postman)
 
-Con `CLOUDFLARE_TOKEN` definido, el contenedor `cloudflared` publica el gateway
-en http://inklusport.inklusport.uk/. Las peticiones van a rutas `/api/...`
-(por ejemplo `/api/auth/login`). En el túnel de Cloudflare Zero Trust el
-hostname debe apuntar a `http://gateway-service:8080`.
+Con `CLOUDFLARE_TOKEN` definido, el contenedor `cloudflared` publica el
+**frontend** en http://inklusport.inklusport.uk/ (HTML de Angular). Las
+peticiones `/api/...` las proxea nginx al gateway. En el túnel de Cloudflare
+Zero Trust el hostname debe apuntar a `http://frontend-service:80`.
+
+Ejemplos públicos:
+
+- App: `https://inklusport.inklusport.uk/`
+- API: `https://inklusport.inklusport.uk/api/auth/login` (Postman)
 
 ### Asistente IA (chatbot / agente)
 
