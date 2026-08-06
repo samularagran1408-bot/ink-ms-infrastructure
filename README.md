@@ -107,6 +107,9 @@ compose local y se sobrescriben en el despliegue remoto.
 
 ## Despliegue remoto
 
+Guía completa paso a paso (VPS y Azure): ver **[DEPLOY.md](DEPLOY.md)**.
+Plantilla de variables: `.env.prod.example` → cópiala a `.env.prod`.
+
 `docker-compose.prod.yml` es el fichero de despliegue. Se diferencia del local en
 tres cosas, cada una por un motivo concreto:
 
