@@ -322,6 +322,8 @@ services:
     restart: always
     ports:
       - "8088:80"
+    environment:
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
     depends_on:
       - gateway-service
     networks:
