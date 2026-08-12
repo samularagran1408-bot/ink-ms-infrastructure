@@ -81,6 +81,13 @@ services:
       MONGODB_URI: ${MONGODB_URI:?falta MONGODB_URI}
       MONGODB_DB: ${MONGODB_DB:-accessibility_notifications_db}
       AUTH_SERVICE_URL: http://auth-service:3001
+      USERS_SERVICE_URL: http://users-service:3002
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-465}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_PROTOCOL: ${MAIL_PROTOCOL:-smtps}
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
 
   reports-service:
     <<: *java-common

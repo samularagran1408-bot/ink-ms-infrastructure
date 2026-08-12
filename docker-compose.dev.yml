@@ -131,6 +131,13 @@ services:
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
       MONGODB_URI: mongodb://admin:admin123@mongodb:27017/accessibility_notifications_db?authSource=admin
       MONGODB_DB: accessibility_notifications_db
+      USERS_SERVICE_URL: http://users-service:3002
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-465}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_PROTOCOL: ${MAIL_PROTOCOL:-smtps}
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
     depends_on:
       mongodb:
         condition: service_healthy

@@ -188,6 +188,7 @@ services:
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
       MONGODB_URI: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-admin123}@mongodb:27017/${MONGO_DATABASE:-accessibility_notifications_db}?authSource=admin
       MONGODB_DB: ${MONGO_DATABASE:-accessibility_notifications_db}
+      USERS_SERVICE_URL: http://users-service:3002
       MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
       MAIL_PORT: ${MAIL_PORT:-465}
       MAIL_USERNAME: ${MAIL_USERNAME:-}
