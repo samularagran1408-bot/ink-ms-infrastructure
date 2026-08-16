@@ -140,6 +140,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
       ACCESSIBILITY_SERVICE_URL: http://accessibility-service:3004
+      SPORTS_SERVICE_URL: http://sports-service:3003
       NOTIFICATION_ADMIN_EMAILS: ${NOTIFICATION_ADMIN_EMAILS:-}
     depends_on:
       mysql:

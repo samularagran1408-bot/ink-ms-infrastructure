@@ -89,6 +89,7 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      SPORTS_SERVICE_URL: http://sports-service:3003
     depends_on:
       mysql:
         condition: service_healthy

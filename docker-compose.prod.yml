@@ -61,6 +61,7 @@ services:
       MYSQL_USER: ${MYSQL_USER:?falta MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?falta MYSQL_PASSWORD}
       AUTH_SERVICE_URL: http://auth-service:3001
+      SPORTS_SERVICE_URL: http://sports-service:3003
 
   sports-service:
     <<: *java-common

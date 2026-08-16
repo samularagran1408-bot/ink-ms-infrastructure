@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS user_profile (
     companion_email VARCHAR(100),
     support_preference VARCHAR(50),
     support_preference_notes VARCHAR(255),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    deleted_at DATETIME NULL,
     email_verified BOOLEAN NOT NULL DEFAULT FALSE,
     phone_verified BOOLEAN NOT NULL DEFAULT FALSE,
     events_attended INT NOT NULL DEFAULT 0,
