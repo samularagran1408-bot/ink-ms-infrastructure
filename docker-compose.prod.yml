@@ -122,11 +122,26 @@ services:
       MAIL_ENABLED: ${MAIL_ENABLED:-false}
       PAYMENT_GATEWAY_MODE: ${PAYMENT_GATEWAY_MODE:-mock}
 
+  mcp-service:
+    image: ${REGISTRY:?falta REGISTRY}/ink-mcp-inklusport:${TAG:-latest}
+    restart: always
+    networks:
+      - inklusport-network
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8000"
+      TRANSPORT: streamable-http
+      AGENT_ROLE: all
+      USERS_SERVICE_URL: http://users-service:3002
+      SPORTS_SERVICE_URL: http://sports-service:3003
+
   ai-service:
     image: ${REGISTRY:?falta REGISTRY}/ink-ms-ai-assistant:${TAG:-latest}
     restart: always
     networks:
       - inklusport-network
+    depends_on:
+      - mcp-service
     environment:
       MONGODB_URI: ${AI_MONGODB_URI:?falta AI_MONGODB_URI}
       MONGODB_DB: ${AI_MONGODB_DB:-inclusport_training_ia}
@@ -135,6 +150,8 @@ services:
       SPORTS_SERVICE_URL: http://sports-service:3003
       ACCESSIBILITY_SERVICE_URL: http://accessibility-service:3004
       REPORTS_SERVICE_URL: http://reports-service:3006
+      MCP_ENABLED: "true"
+      MCP_URL: http://mcp-service:8000/mcp
       LLM_ENABLED: ${LLM_ENABLED:-true}
       LLM_PROVIDER: ${LLM_PROVIDER:-openrouter}
       LLM_API_KEY: ${LLM_API_KEY:?falta LLM_API_KEY}
@@ -170,4 +187,5 @@ services:
       - accessibility-service
       - reports-service
       - subscriptions-service
+      - mcp-service
       - ai-service

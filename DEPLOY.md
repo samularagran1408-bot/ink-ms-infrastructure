@@ -223,6 +223,8 @@ foreach ($s in @("auth","users","sports","accesibility","reports","suscriptions"
 
 docker build -t "$acr/ink-ms-ai-assistant:$tag" "./ink-ms-ai-assistant"
 docker push "$acr/ink-ms-ai-assistant:$tag"
+docker build -t "$acr/ink-mcp-inklusport:$tag" "./ink-mcp-inklusport"
+docker push "$acr/ink-mcp-inklusport:$tag"
 
 # Frontend (nginx + Angular)
 docker build -t "$acr/ink-ms-frontend:$tag" "./ink-ms-frontend"

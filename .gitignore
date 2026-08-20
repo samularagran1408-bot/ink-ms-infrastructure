@@ -6,3 +6,4 @@ node_modules/
 
 # Microservicios: viven en repos propios; no versionar ni como submodulos
 ink-ms-*/
+ink-mcp-*/
