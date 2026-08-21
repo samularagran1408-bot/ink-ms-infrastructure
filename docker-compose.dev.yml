@@ -204,10 +204,13 @@ services:
       AGENT_ROLE: all
       USERS_SERVICE_URL: http://users-service:3002
       SPORTS_SERVICE_URL: http://sports-service:3003
+      REPORTS_SERVICE_URL: http://reports-service:3006
     depends_on:
       users-service:
         condition: service_started
       sports-service:
+        condition: service_started
+      reports-service:
         condition: service_started
     networks:
       - inklusport-network
