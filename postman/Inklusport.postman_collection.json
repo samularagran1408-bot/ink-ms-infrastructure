@@ -1,7 +1,7 @@
 {
   "info": {
     "_postman_id": "a1b2c3d4-e5f6-4789-a012-inklusport0001",
-    "name": "Inklusport — Postman + Newman",
+    "name": "Inklusport = Postman + Newman",
     "description": "Una carpeta = un microservicio, todas las URLs pasan por el gateway ({{baseUrl}}).\n\nNewman por servicio:\nnewman run Inklusport.postman_collection.json -e Inklusport.local.postman_environment.json --folder \"03 — Sports\"",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
