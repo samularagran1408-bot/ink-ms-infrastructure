@@ -1,0 +1,567 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-4789-a012-inklusport0001",
+    "name": "Inklusport — Postman + Newman",
+    "description": "Una carpeta = un microservicio, todas las URLs pasan por el gateway ({{baseUrl}}).\n\nNewman por servicio:\nnewman run Inklusport.postman_collection.json -e Inklusport.local.postman_environment.json --folder \"03 — Sports\"",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test(\"El gateway enruta (no es 404)\", function () {",
+          "    pm.expect(pm.response.code).to.not.equal(404);",
+          "});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "token", "value": "" },
+    { "key": "email", "value": "demo@inklusport.uk" },
+    { "key": "password", "value": "Demo1234!" },
+    { "key": "conversacion_id", "value": "" },
+    { "key": "userId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "00 — Salud gateway",
+      "item": [
+        {
+          "name": "GET salud IA",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"200 JSON\", function () {",
+                "    pm.response.to.have.status(200);",
+                "    pm.response.to.be.json;",
+                "});"
+              ]
+            }
+          }],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/ai/health",
+            "description": "ink-ms-ai-assistant vía gateway. Sin JWT."
+          }
+        },
+        {
+          "name": "GET diagnóstico IA (dependencias)",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Diagnóstico responde 200\", function () {",
+                "    pm.response.to.have.status(200);",
+                "});"
+              ]
+            }
+          }],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/ai/diagnostico",
+            "description": "El asistente comprueba si ve auth, users, sports, etc."
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 — Auth",
+      "item": [
+        {
+          "name": "POST login (guarda JWT)",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Login 200\", function () { pm.response.to.have.status(200); });",
+                "const json = pm.response.json();",
+                "const token = json.token || json.accessToken || json.jwt || json.access_token;",
+                "pm.test(\"Hay JWT\", function () {",
+                "    pm.expect(token).to.be.a(\"string\").and.to.have.lengthOf.above(20);",
+                "});",
+                "if (token) {",
+                "    pm.collectionVariables.set(\"token\", token);",
+                "    pm.environment.set(\"token\", token);",
+                "}"
+              ]
+            }
+          }],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "ink-ms-auth. Guarda {{token}} para el resto de carpetas."
+          }
+        },
+        {
+          "name": "GET validar JWT",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Token válido (200)\", function () { pm.response.to.have.status(200); });"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/validate",
+            "description": "GET /api/auth/validate — comprueba el Bearer."
+          }
+        },
+        {
+          "name": "POST login inválido (4xx)",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Rechaza credenciales malas\", function () {",
+                "    pm.expect([400, 401, 403]).to.include(pm.response.code);",
+                "});"
+              ]
+            }
+          }],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nadie@inklusport.uk\",\n  \"password\": \"clave-incorrecta\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Prueba negativa: 400/401 es PASSED."
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 — Users",
+      "item": [
+        {
+          "name": "GET perfil",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Perfil 200\", function () { pm.response.to.have.status(200); });",
+                "const json = pm.response.json();",
+                "pm.test(\"Tiene email o id\", function () {",
+                "    pm.expect(!!(json.email || json.id || json.fullName)).to.eql(true);",
+                "});",
+                "if (json.id) {",
+                "    pm.collectionVariables.set(\"userId\", String(json.id));",
+                "    pm.environment.set(\"userId\", String(json.id));",
+                "}"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/users/perfil",
+            "description": "ink-ms-users. Guarda {{userId}} (UUID) para sports/IA."
+          }
+        },
+        {
+          "name": "GET actividades del perfil",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Actividades 200\", function () { pm.response.to.have.status(200); });"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/users/perfil/activities"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 — Sports",
+      "item": [
+        {
+          "name": "GET eventos",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Eventos 200\", function () { pm.response.to.have.status(200); });"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/events",
+            "description": "ink-ms-sports"
+          }
+        },
+        {
+          "name": "GET eventos disponibles",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Available 200\", function () { pm.response.to.have.status(200); });"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/events/available"
+          }
+        },
+        {
+          "name": "GET calendario",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Calendario 200\", function () { pm.response.to.have.status(200); });"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/events/calendar"
+          }
+        },
+        {
+          "name": "GET deportes activos",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Sports 200\", function () { pm.response.to.have.status(200); });"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/sports/active"
+          }
+        },
+        {
+          "name": "GET discapacidades",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Disabilities 200\", function () { pm.response.to.have.status(200); });"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/disabilities"
+          }
+        },
+        {
+          "name": "GET rutinas publicadas",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Routines 200\", function () { pm.response.to.have.status(200); });"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/routines"
+          }
+        },
+        {
+          "name": "GET inscripciones del usuario",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Registrations enrutadas\", function () {",
+                "    pm.expect([200, 400, 401]).to.include(pm.response.code);",
+                "});"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/registrations/user/{{userId}}",
+            "description": "Requiere {{userId}} del GET perfil."
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 — Accessibility",
+      "item": [
+        {
+          "name": "GET preferencias",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Preferences 200 o 401\", function () {",
+                "    pm.expect([200, 401, 403]).to.include(pm.response.code);",
+                "});"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/preferences",
+            "description": "ink-ms-accesibility"
+          }
+        },
+        {
+          "name": "GET notificaciones",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Notifications 200 o 401\", function () {",
+                "    pm.expect([200, 401, 403]).to.include(pm.response.code);",
+                "});"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/notifications"
+          }
+        },
+        {
+          "name": "GET comandos de voz",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Voice commands 200 o 401\", function () {",
+                "    pm.expect([200, 401, 403]).to.include(pm.response.code);",
+                "});"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/voice/commands"
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 — Subscriptions",
+      "item": [
+        {
+          "name": "GET planes activos",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Planes 200\", function () { pm.response.to.have.status(200); });"
+              ]
+            }
+          }],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/plans",
+            "description": "ink-ms-suscriptions — catálogo público (RF56)."
+          }
+        },
+        {
+          "name": "GET mi suscripción",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"200 si organizador, 403 si no\", function () {",
+                "    pm.expect([200, 401, 403, 404]).to.include(pm.response.code);",
+                "});"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/subscriptions/mine",
+            "description": "Requiere rol ORGANIZADOR o ADMIN. 403 también demuestra el microservicio."
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 — Reports",
+      "item": [
+        {
+          "name": "GET dashboard analítico",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"200 admin/organizador o 403\", function () {",
+                "    pm.expect([200, 401, 403]).to.include(pm.response.code);",
+                "});"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/dashboard",
+            "description": "ink-ms-reports. PreAuthorize ADMIN/ORGANIZADOR."
+          }
+        },
+        {
+          "name": "GET métricas diarias",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Analytics metrics enrutadas\", function () {",
+                "    pm.expect([200, 401, 403]).to.include(pm.response.code);",
+                "});"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/analytics/metrics/daily"
+          }
+        },
+        {
+          "name": "GET configs de reportes",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Report configs enrutadas\", function () {",
+                "    pm.expect([200, 401, 403]).to.include(pm.response.code);",
+                "});"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/reports/configs"
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 — IA",
+      "item": [
+        {
+          "name": "POST chat del agente",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Chat 200\", function () { pm.response.to.have.status(200); });",
+                "const json = pm.response.json();",
+                "if (json.conversacion_id) {",
+                "    pm.collectionVariables.set(\"conversacion_id\", json.conversacion_id);",
+                "    pm.environment.set(\"conversacion_id\", json.conversacion_id);",
+                "}"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mensaje\": \"¿Qué eventos hay?\",\n  \"disability_type\": \"visual\"\n}"
+            },
+            "url": "{{baseUrl}}/api/ai/chat/",
+            "description": "Puede tardar (LLM). Corre esta carpeta al final."
+          }
+        },
+        {
+          "name": "GET dashboard IA del usuario",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Dashboard IA enrutado\", function () {",
+                "    pm.expect([200, 400, 401, 404]).to.include(pm.response.code);",
+                "});"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/ai/dashboard/{{userId}}",
+            "description": "RF47. Requiere JWT y {{userId}}."
+          }
+        }
+      ]
+    }
+  ]
+}

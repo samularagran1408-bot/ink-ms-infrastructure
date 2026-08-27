@@ -1,0 +1,22 @@
+{
+  "name": "inklusport-postman-newman",
+  "private": true,
+  "description": "Ejemplo de la exposición: colección Postman de Inklusport ejecutada con Newman",
+  "scripts": {
+    "test": "newman run Inklusport.postman_collection.json -e Inklusport.local.postman_environment.json --delay-request 300",
+    "test:html": "newman run Inklusport.postman_collection.json -e Inklusport.local.postman_environment.json --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export newman-report.html --reporter-htmlextra-title \"Inklusport — Newman\"",
+    "test:publico": "newman run Inklusport.postman_collection.json -e Inklusport.publico.postman_environment.json --delay-request 300",
+    "test:salud": "newman run Inklusport.postman_collection.json -e Inklusport.local.postman_environment.json --folder \"00 — Salud gateway\"",
+    "test:auth": "newman run Inklusport.postman_collection.json -e Inklusport.local.postman_environment.json --folder \"01 — Auth\"",
+    "test:users": "newman run Inklusport.postman_collection.json -e Inklusport.local.postman_environment.json --folder \"01 — Auth\" --folder \"02 — Users\"",
+    "test:sports": "newman run Inklusport.postman_collection.json -e Inklusport.local.postman_environment.json --folder \"03 — Sports\"",
+    "test:access": "newman run Inklusport.postman_collection.json -e Inklusport.local.postman_environment.json --folder \"01 — Auth\" --folder \"04 — Accessibility\"",
+    "test:subs": "newman run Inklusport.postman_collection.json -e Inklusport.local.postman_environment.json --folder \"05 — Subscriptions\"",
+    "test:reports": "newman run Inklusport.postman_collection.json -e Inklusport.local.postman_environment.json --folder \"01 — Auth\" --folder \"06 — Reports\"",
+    "test:ia": "newman run Inklusport.postman_collection.json -e Inklusport.local.postman_environment.json --timeout-request 180000 --folder \"01 — Auth\" --folder \"07 — IA\""
+  },
+  "devDependencies": {
+    "newman": "^6.2.1",
+    "newman-reporter-htmlextra": "^1.23.1"
+  }
+}
