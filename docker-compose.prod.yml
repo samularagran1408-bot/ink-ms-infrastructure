@@ -62,6 +62,10 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?falta MYSQL_PASSWORD}
       AUTH_SERVICE_URL: http://auth-service:3001
       SPORTS_SERVICE_URL: http://sports-service:3003
+      CLOUDINARY_URL: ${CLOUDINARY_URL:-}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
 
   sports-service:
     <<: *java-common

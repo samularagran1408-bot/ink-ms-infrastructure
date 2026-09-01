@@ -1,0 +1,330 @@
+{
+  "info": {
+    "_postman_id": "210a9b01-67b4-444f-85f8-081c31bf70f5",
+    "name": "ACCESIBILITY",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52180682",
+    "_collection_link": "https://go.postman.co/collection/52180682-210a9b01-67b4-444f-85f8-081c31bf70f5?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Preferences",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzYW11bGFyYWdyYW4xNDA4QGdtYWlsLmNvbSIsInJvbGVzIjpbIkFETUlOIl0sImlhdCI6MTc4NTI2NzI3NywiZXhwIjoxNzg1MzUzNjc3fQ.SpoRLRBUN_Pdsm5ShF51vuNXGRzr63mXADixEA_7AUX-Pwy8XYlo9hOLl99mQ33zTMjACGljSGtNEzFvkN1CyA",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3004/api/preferences",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3004",
+          "path": [
+            "api",
+            "preferences"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Preferences",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzYW11bGFyYWdyYW4xNDA4QGdtYWlsLmNvbSIsInJvbGVzIjpbIkFETUlOIl0sImlhdCI6MTc4NDU3Nzg4MCwiZXhwIjoxNzg0NjY0MjgwfQ.Bs7GkbSV0JJ8hhX1GxaTt29qZXrpoBoUzULOfGMMS8ew6deilLvJfI3-hG7gu5yk--v71nSXXJ0fRf1arWpl4g",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"highContrast\": false,\r\n    \"fontSize\": \"large\",\r\n    \"language\": \"en\",\r\n    \"readerMode\": true\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3004/api/preferences",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3004",
+          "path": [
+            "api",
+            "preferences"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Notifications",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJsYWd1bmEzNDVAZ21haWwuY29tIiwicm9sZXMiOlsiVVNVQVJJTyJdLCJpYXQiOjE3ODQ2NTEzNTksImV4cCI6MTc4NDczNzc1OX0.p3Y5xotYO6d_ksd1KMr4jTYqaaOpwtUaJfbtcorkmHPLkObmMB816SV2FfOlt_K2WlaWwd6Bmsf9paWnxlolrw",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3004/api/notifications",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3004",
+          "path": [
+            "api",
+            "notifications"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Notifications",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzYW11bGFyYWdyYW4xNDA4QGdtYWlsLmNvbSIsInJvbGVzIjpbIkFETUlOIiwiT1JHQU5JWkFET1IiXSwiaWF0IjoxNzgzNTI2NzkwLCJleHAiOjE3ODM2MTMxOTB9.70QYO4IzunsSOlaVeeZRQU5AgFANHNCdmfFWdy2_Bk1mTIEWmf2XbhUdpr4NoTzQkKjEibakfufqawIChK1Kdw",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "X-User-Id",
+            "value": "samularagran14088@gmail.com",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"type\": \"waitlist_added\",\r\n    \"title\": \"Notificación de prueba\",\r\n    \"body\": \"Esta es una prueba\",\r\n    \"eventId\": \"test-123\",\r\n    \"priority\": \"high\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3004/api/notifications/internal/create",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3004",
+          "path": [
+            "api",
+            "notifications",
+            "internal",
+            "create"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Notifications Unread",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJLcmlzQXI2NzhAZ21haWwuY29tIiwicm9sZXMiOlsiQURNSU4iXSwiaWF0IjoxNzgxMTc5Nzk0LCJleHAiOjE3ODEyNjYxOTR9.BWkczk4JZOGZgDxJAfLHZZZ2l1kExd0qhBJUoeiW-90NxfZsrz0GFKxAhNWbMW3GcM94IFgIJYpIDdra_1MFnA",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3004/api/notifications/unread",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3004",
+          "path": [
+            "api",
+            "notifications",
+            "unread"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Notifications Unread Count",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzYW11bGFyYWdyYW4xNDA4QGdtYWlsLmNvbSIsInJvbGVzIjpbIkFETUlOIl0sImlhdCI6MTc4MDY2NzE4NywiZXhwIjoxNzgwNzUzNTg3fQ.RrpS7a8nZG_vBPtsJnprVwmf235PzSpfI-DoUeW3JYSnYfNEi51PalwIHUpstoJffBRH9gEpZoy0q8ySHW4beQ",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3004/api/notifications/unread/count",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3004",
+          "path": [
+            "api",
+            "notifications",
+            "unread",
+            "count"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Mark Notification Ass Read",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzYW11bGFyYWdyYW4xNDA4QGdtYWlsLmNvbSIsInJvbGVzIjpbIkFETUlOIl0sImlhdCI6MTc4MTAxNDg3OSwiZXhwIjoxNzgxMTAxMjc5fQ.6qXe-JRNa-QVvwe9relhJrRHnKnJrGi8bpSXBQW14HDiE-8MSKd-on9IpCuJQKAiPqAnd0COKEoTd2Wq18B3Wg",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3004/api/notifications/6a282a0bb7483955fe503a6c/read",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3004",
+          "path": [
+            "api",
+            "notifications",
+            "6a282a0bb7483955fe503a6c",
+            "read"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Mark All Notification Ass Read",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzYW11bGFyYWdyYW4xNDA4QGdtYWlsLmNvbSIsInJvbGVzIjpbIkFETUlOIl0sImlhdCI6MTc4MTI3NDE0OSwiZXhwIjoxNzgxMzYwNTQ5fQ.ugT_mVvnOI_l2cEUJ-uE3UteMJzsRWqtveG529eQo84da4u_9on1JNtTZdl_zfPbJE3AcvUwFNwLoPSMPwYS-g",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3004/api/notifications/read-all",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3004",
+          "path": [
+            "api",
+            "notifications",
+            "read-all"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

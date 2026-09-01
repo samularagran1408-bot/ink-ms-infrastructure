@@ -31,8 +31,8 @@
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:8080" },
     { "key": "token", "value": "" },
-    { "key": "email", "value": "demo@inklusport.uk" },
-    { "key": "password", "value": "Demo1234!" },
+    { "key": "email", "value": "samularagran1408@gmail.com" },
+    { "key": "password", "value": "Ñerdisimanojoda345*=" },
     { "key": "conversacion_id", "value": "" },
     { "key": "userId", "value": "" }
   ],
