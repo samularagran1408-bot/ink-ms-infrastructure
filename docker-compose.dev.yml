@@ -173,9 +173,9 @@ services:
 
   subscriptions-service:
     build:
-      context: ./ink-ms-suscriptions
+      context: ./ink-ms-subscriptions
       dockerfile: Dockerfile
-    container_name: ink-ms-suscriptions
+    container_name: ink-ms-subscriptions
     restart: always
     ports:
       - "3005:3005"
@@ -185,6 +185,10 @@ services:
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
       MAIL_ENABLED: ${MAIL_ENABLED:-false}
       PAYMENT_GATEWAY_MODE: ${PAYMENT_GATEWAY_MODE:-mock}
+      MERCADOPAGO_ACCESS_TOKEN: ${MERCADOPAGO_ACCESS_TOKEN:-}
+      MERCADOPAGO_PUBLIC_KEY: ${MERCADOPAGO_PUBLIC_KEY:-}
+      MERCADOPAGO_WEBHOOK_SECRET: ${MERCADOPAGO_WEBHOOK_SECRET:-}
+      SUBSCRIPTION_WARNING_DAYS: ${SUBSCRIPTION_WARNING_DAYS:-7}
     depends_on:
       mysql:
         condition: service_healthy

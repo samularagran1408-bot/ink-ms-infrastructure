@@ -109,7 +109,7 @@ services:
 
   subscriptions-service:
     <<: *java-common
-    image: ${REGISTRY:?falta REGISTRY}/ink-ms-suscriptions:${TAG:-latest}
+    image: ${REGISTRY:?falta REGISTRY}/ink-ms-subscriptions:${TAG:-latest}
     environment:
       <<: *java-env
       MYSQL_URL: ${SUBSCRIPTIONS_MYSQL_URL:?falta SUBSCRIPTIONS_MYSQL_URL}
@@ -125,6 +125,10 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       MAIL_ENABLED: ${MAIL_ENABLED:-false}
       PAYMENT_GATEWAY_MODE: ${PAYMENT_GATEWAY_MODE:-mock}
+      MERCADOPAGO_ACCESS_TOKEN: ${MERCADOPAGO_ACCESS_TOKEN:-}
+      MERCADOPAGO_PUBLIC_KEY: ${MERCADOPAGO_PUBLIC_KEY:-}
+      MERCADOPAGO_WEBHOOK_SECRET: ${MERCADOPAGO_WEBHOOK_SECRET:-}
+      SUBSCRIPTION_WARNING_DAYS: ${SUBSCRIPTION_WARNING_DAYS:-7}
 
   mcp-service:
     image: ${REGISTRY:?falta REGISTRY}/ink-mcp-inklusport:${TAG:-latest}
