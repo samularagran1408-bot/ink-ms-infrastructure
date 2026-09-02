@@ -248,6 +248,9 @@ services:
       REPORTS_SERVICE_URL: http://reports-service:3006
       MCP_ENABLED: "true"
       MCP_URL: http://mcp-service:8000/mcp
+      OTEL_SDK_DISABLED: "true"
+      CREWAI_DISABLE_TELEMETRY: "true"
+      CREWAI_TRACING_ENABLED: "false"
     depends_on:
       mongodb:
         condition: service_healthy

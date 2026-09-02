@@ -296,6 +296,9 @@ services:
       REPORTS_SERVICE_URL: http://reports-service:3006
       MCP_ENABLED: "true"
       MCP_URL: http://mcp-service:8000/mcp
+      OTEL_SDK_DISABLED: "true"
+      CREWAI_DISABLE_TELEMETRY: "true"
+      CREWAI_TRACING_ENABLED: "false"
       # El LLM se configura sólo en ink-ms-ai-assistant/.env (cargado arriba con
       # env_file) para no tener la clave y el modelo repartidos en dos sitios.
       # Si activas el perfil llm-local, apunta allí LLM_API_URL a
