@@ -86,7 +86,11 @@ La forma más simple para el equipo: mismo compose que en local (incluye MySQL, 
 
 ```bash
 cd ~/inklusport
-docker compose up -d --build
+# Imágenes ya publicadas en Docker Hub (DOCKERHUB_USER en .env):
+docker compose pull
+docker compose up -d
+# Si aún no las has subido y tienes el código en el VPS:
+#   docker compose -f docker-compose.dev.yml up -d --build
 ```
 
 Comprueba:
@@ -142,10 +146,11 @@ No abras al público 3306, 27017 ni los puertos de microservicios (3001–3008).
 
 ```bash
 cd ~/inklusport
-git -C ink-ms-auth pull   # o el repo que cambió
-docker compose up -d --build auth-service
-# Si cambió el frontend:
-docker compose up -d --build frontend-service
+# En tu PC, con el código actualizado:
+#   .\push-images.ps1 -Service auth
+#   .\push-images.ps1 -Service frontend
+docker compose pull
+docker compose up -d
 ```
 
 ---

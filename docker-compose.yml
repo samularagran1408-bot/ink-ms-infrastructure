@@ -1,3 +1,11 @@
+# Los microservicios NO se construyen aquí: se descargan de Docker Hub.
+# Define DOCKERHUB_USER en .env (tu usuario de https://hub.docker.com/).
+# Para publicar una versión nueva (hace falta el código fuente):
+#   docker login
+#   .\push-images.ps1
+# Para desarrollar compilando desde el código local:
+#   docker compose -f docker-compose.dev.yml up -d --build
+
 networks:
   inklusport-network:
     driver: bridge
@@ -103,9 +111,7 @@ services:
   # entorno desde .env. La sintaxis :? hace que compose falle con un mensaje claro
   # si la variable no está definida, en vez de arrancar y fallar más tarde.
   auth-service:
-    build:
-      context: ./ink-ms-auth
-      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USER:?define DOCKERHUB_USER en .env}/ink-ms-auth:${IMAGE_TAG:-latest}
     container_name: ink-ms-auth
     restart: always
     ports:
@@ -128,9 +134,7 @@ services:
       - inklusport-network
 
   users-service:
-    build:
-      context: ./ink-ms-users
-      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USER:?define DOCKERHUB_USER en .env}/ink-ms-users:${IMAGE_TAG:-latest}
     container_name: ink-ms-users
     restart: always
     ports:
@@ -157,9 +161,7 @@ services:
       - inklusport-network
 
   sports-service:
-    build:
-      context: ./ink-ms-sports
-      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USER:?define DOCKERHUB_USER en .env}/ink-ms-sports:${IMAGE_TAG:-latest}
     container_name: ink-ms-sports
     restart: always
     ports:
@@ -180,9 +182,7 @@ services:
       - inklusport-network
 
   accessibility-service:
-    build:
-      context: ./ink-ms-accesibility
-      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USER:?define DOCKERHUB_USER en .env}/ink-ms-accessibility:${IMAGE_TAG:-latest}
     container_name: ink-ms-accessibility
     restart: always
     ports:
@@ -209,9 +209,7 @@ services:
       - inklusport-network
 
   reports-service:
-    build:
-      context: ./ink-ms-reports
-      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USER:?define DOCKERHUB_USER en .env}/ink-ms-reports:${IMAGE_TAG:-latest}
     container_name: ink-ms-reports
     restart: always
     ports:
@@ -229,9 +227,7 @@ services:
       - inklusport-network
 
   subscriptions-service:
-    build:
-      context: ./ink-ms-subscriptions
-      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USER:?define DOCKERHUB_USER en .env}/ink-ms-subscriptions:${IMAGE_TAG:-latest}
     container_name: ink-ms-subscriptions
     restart: always
     ports:
@@ -259,9 +255,7 @@ services:
       - inklusport-network
 
   mcp-service:
-    build:
-      context: ./ink-mcp-inklusport
-      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USER:?define DOCKERHUB_USER en .env}/ink-mcp-inklusport:${IMAGE_TAG:-latest}
     container_name: ink-mcp-inklusport
     restart: always
     ports:
@@ -285,9 +279,7 @@ services:
       - inklusport-network
 
   ai-service:
-    build:
-      context: ./ink-ms-ai-assistant
-      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USER:?define DOCKERHUB_USER en .env}/ink-ms-ai-assistant:${IMAGE_TAG:-latest}
     container_name: ink-ms-ai-python
     restart: always
     ports:
@@ -325,9 +317,7 @@ services:
       - inklusport-network
 
   gateway-service:
-    build:
-      context: ./ink-ms-gateway
-      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USER:?define DOCKERHUB_USER en .env}/ink-ms-gateway:${IMAGE_TAG:-latest}
     container_name: ink-ms-gateway
     restart: always
     ports:
@@ -355,9 +345,7 @@ services:
   # SPA Angular + proxy /api → gateway. El túnel público apunta aquí para
   # que el navegador abra la web y Postman siga usando /api/...
   frontend-service:
-    build:
-      context: ./ink-ms-frontend
-      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USER:?define DOCKERHUB_USER en .env}/ink-ms-frontend:${IMAGE_TAG:-latest}
     container_name: ink-ms-frontend
     restart: always
     ports:

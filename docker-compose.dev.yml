@@ -1,3 +1,8 @@
+# Compose de desarrollo: construye cada servicio desde el código local.
+# Para arrancar con imágenes de Docker Hub (sin compilár): docker-compose.yml
+#
+#   docker compose -f docker-compose.dev.yml up -d --build
+
 networks:
   inklusport-network:
     driver: bridge

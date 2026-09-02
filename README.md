@@ -15,10 +15,10 @@ despliegue. El código de cada microservicio vive en su propio repositorio.
 | Reports | `ink-ms-reports` | 3006 | MySQL `analytics_ms` |
 | Asistente IA | `ink-ms-ai-assistant` | 3008 | MongoDB |
 
-Para trabajar hay que clonar los repositorios de microservicios como carpetas
-hermanas de este fichero, porque el compose de desarrollo construye desde esas
-rutas. El frontend (`ink-ms-frontend`) también se clona aquí: el compose lo
-sirve con nginx y proxea `/api` al gateway.
+`docker-compose.yml` **no construye** los microservicios: descarga las imágenes
+desde Docker Hub (`DOCKERHUB_USER/ink-ms-auth`, etc.). Para publicar una versión
+nueva hace falta el código fuente y `.\push-images.ps1`. Para desarrollar
+compilando en local: `docker compose -f docker-compose.dev.yml up -d --build`.
 
 ## Acceso público (navegador y Postman)
 
@@ -78,16 +78,32 @@ La clave del LLM se configura en `ink-ms-ai-assistant/.env` (local) o con
 
 ```bash
 cp .env.example .env
-# Rellena JWT_SECRET en .env; sin él los servicios no arrancan (ver más abajo).
-docker compose up -d --build
+# Rellena JWT_SECRET y DOCKERHUB_USER (tu usuario de Docker Hub).
+docker compose pull
+docker compose up -d
 ```
 
-El gateway queda en http://localhost:8080. Los servicios también publican sus
-puertos individuales para poder depurarlos directamente.
+El gateway queda en http://localhost:8080. El frontend (nginx) en
+http://localhost:8088. Los servicios también publican sus puertos individuales
+para poder depurarlos directamente.
 
-Los Dockerfile son multi-stage: compilan con Maven dentro de la imagen, así que no
-hace falta ejecutar `mvn` antes. `build-all.ps1` sólo es útil si quieres los JAR
-para ejecutarlos fuera de Docker.
+La primera vez (o tras un cambio de código) hay que **construir y subir** las
+imágenes a Docker Hub. Los Dockerfile son multi-stage: Maven/Node/Python
+compilan dentro de la imagen.
+
+```powershell
+docker login
+# DOCKERHUB_USER debe coincidir con tu usuario de hub.docker.com
+.\push-images.ps1
+docker compose up -d
+```
+
+`build-all.ps1` sólo es útil si quieres los JAR para ejecutarlos fuera de Docker.
+Para compilar y arrancar desde el código local, sin Docker Hub:
+
+```bash
+docker compose -f docker-compose.dev.yml up -d --build
+```
 
 ## Configuración por variables de entorno
 
