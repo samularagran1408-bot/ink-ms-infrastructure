@@ -295,16 +295,32 @@ services:
     networks:
       - inklusport-network
 
-  # Acceso público (Postman / clientes): cloudflared → gateway:8080.
+  # SPA Angular + nginx. Proxea /api al gateway. El túnel público apunta aquí.
+  frontend-service:
+    build:
+      context: ./ink-ms-frontend
+      dockerfile: Dockerfile
+    container_name: ink-ms-frontend
+    restart: always
+    ports:
+      - "8088:80"
+    environment:
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+    depends_on:
+      - gateway-service
+    networks:
+      - inklusport-network
+
+  # Acceso público: cloudflared → frontend:80 (HTML + /api proxy).
   # En Cloudflare Zero Trust el hostname inklusport.inklusport.uk debe
-  # apuntar al servicio http://gateway-service:8080 (no a un frontend).
+  # apuntar a http://frontend-service:80.
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: inklusport-cloudflared
     restart: unless-stopped
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TOKEN}
     depends_on:
-      - gateway-service
+      - frontend-service
     networks:
       - inklusport-network
 
