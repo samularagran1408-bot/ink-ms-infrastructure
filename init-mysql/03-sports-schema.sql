@@ -77,6 +77,7 @@ CREATE TABLE event_attendance (
     check_in_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     check_in_method ENUM('qr', 'manual', 'admin') DEFAULT 'qr',
     verified_by CHAR(36),
+    notes VARCHAR(500),
     FOREIGN KEY (registration_id) REFERENCES event_registration(id)
 );
 

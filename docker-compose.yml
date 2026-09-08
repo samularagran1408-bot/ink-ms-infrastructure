@@ -299,6 +299,8 @@ services:
       OTEL_SDK_DISABLED: "true"
       CREWAI_DISABLE_TELEMETRY: "true"
       CREWAI_TRACING_ENABLED: "false"
+      CHAT_ORQUESTA_CREW: "false"
+      LLM_TOOL_CALLING_ENABLED: "false"
       # El LLM se configura sólo en ink-ms-ai-assistant/.env (cargado arriba con
       # env_file) para no tener la clave y el modelo repartidos en dos sitios.
       # Si activas el perfil llm-local, apunta allí LLM_API_URL a

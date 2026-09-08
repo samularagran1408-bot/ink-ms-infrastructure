@@ -232,10 +232,15 @@ services:
     build:
       context: ./ink-ms-ai-assistant
       dockerfile: Dockerfile
+      args:
+        CACHEBUST: ${AI_CACHEBUST:-dev}
     container_name: ink-ms-ai-python
     restart: always
     ports:
       - "3008:3008"
+    volumes:
+      - ./ink-ms-ai-assistant/app:/app/app
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "3008", "--reload"]
     env_file:
       - ./ink-ms-ai-assistant/.env
     environment:
@@ -251,6 +256,8 @@ services:
       OTEL_SDK_DISABLED: "true"
       CREWAI_DISABLE_TELEMETRY: "true"
       CREWAI_TRACING_ENABLED: "false"
+      CHAT_ORQUESTA_CREW: "false"
+      LLM_TOOL_CALLING_ENABLED: "false"
     depends_on:
       mongodb:
         condition: service_healthy
