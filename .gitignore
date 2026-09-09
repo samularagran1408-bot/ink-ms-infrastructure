@@ -1,5 +1,7 @@
 .env
 .env.*
+!.env.example
+!.env.prod.example
 node_modules/
 *.log
 .DS_Store
