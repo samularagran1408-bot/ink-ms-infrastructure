@@ -183,9 +183,7 @@ Después del despliegue quedan dos ajustes que el compose no puede expresar:
 
 - Dejar el ingress de `gateway-service` en **externo** y el de los otros seis en
   **interno**. Así sólo el gateway es accesible desde internet.
-- Poner `minReplicas: 1` al menos en `gateway-service` y `auth-service`. Estas
-  aplicaciones tardan entre 30 y 55 segundos en arrancar (medido), así que con
-  escalado a cero la primera petición tras un rato de inactividad daría timeout.
+- Poner **2 réplicas mínimas** en `gateway-service`, `auth-service`, `sports-service` y `users-service` (`.\scale-prod.ps1`). El arranque tarda 30–55 s; scale-to-zero da timeout.
 
 Los secretos (`JWT_SECRET`, contraseñas de las bases, `LLM_API_KEY`) conviene
 guardarlos como secretos de Container Apps y referenciarlos, en lugar de dejarlos

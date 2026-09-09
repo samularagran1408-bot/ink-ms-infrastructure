@@ -274,7 +274,7 @@ az containerapp compose create \
 1. **Ingress**
    - `gateway-service`: externo (HTTPS)
    - Resto de microservicios: **interno**
-2. **Réplicas mínimas** ≥ 1 en `gateway-service` y `auth-service` (arranque 30–55 s; scale-to-zero da timeouts).
+2. **Réplicas mínimas** = 2 en `gateway-service`, `auth-service`, `sports-service` y `users-service` (arranque 30–55 s; scale-to-zero da timeouts). Ejecuta `.\scale-prod.ps1` (ver sección C).
 3. **Frontend**: `docker-compose.prod.yml` hoy no incluye el frontend. Opciones:
    - Desplegar `ink-ms-frontend` como Container App aparte con ingress externo, proxy `/api` al FQDN interno del gateway, **o**
    - Servir el front en Static Web Apps / Blob + CDN apuntando `API_BASE_URL` al gateway público.
@@ -297,6 +297,26 @@ docker build -t <acr>.azurecr.io/ink-ms-auth:v2 ./ink-ms-auth
 docker push <acr>.azurecr.io/ink-ms-auth:v2
 az containerapp update -g inklusport-rg -n auth-service --image <acr>.azurecr.io/ink-ms-auth:v2
 ```
+
+---
+
+## C — Listo para mucha gente a la vez
+
+El lote de código (paginación, cupos, índices) aguanta **más eventos**. Esto aguanta **más usuarios simultáneos**. No lo actives en el compose de desarrollo: MySQL en el mismo PC/VPS se queda sin RAM.
+
+| Dónde | Qué hacer |
+|-------|-----------|
+| Azure (camino B) | Tras `az containerapp compose create`, ejecuta `.\scale-prod.ps1` |
+| VPS con bases fuera | `.\scale-prod.ps1 -Vps` (2× auth/sports/users; gateway ×1) |
+| Laptop / `docker-compose.yml` | Nada. Una réplica basta |
+
+`docker-compose.prod.yml` ya declara 2 réplicas de auth, sports y users, pool Hikari 10 por réplica, y `SPRING_DATASOURCE_URL` para que auth/users no apunten al hostname `mysql` de Docker.
+
+**MySQL:** usa Azure Database / equivalente. `max_connections` ≥ `réplicas × 10 × 5` (auth, users, sports, reports, subscriptions). Con 2 réplicas de los tres calientes y 1 del resto, cuenta ~80–100 conexiones.
+
+**No copies** el gateway a 2 en un VPS con `ports: "8080:8080"`: el puerto del host choca. En Azure el ingress sí puede balancear 2 gateways.
+
+**IA:** déjala en 1–2 réplicas. El cuello es el LLM, no la JVM.
 
 ---
 

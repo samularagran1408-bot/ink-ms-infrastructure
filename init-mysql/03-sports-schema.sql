@@ -54,7 +54,9 @@ CREATE TABLE event (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (sport_id) REFERENCES sport(id),
     INDEX idx_event_date (event_date),
-    INDEX idx_event_status (status)
+    INDEX idx_event_status (status),
+    INDEX idx_event_status_date (status, event_date, event_time),
+    INDEX idx_event_created_by (created_by)
 );
 
 -- 5. Tabla: inscripciones
@@ -67,7 +69,8 @@ CREATE TABLE event_registration (
     waitlist_position INT,
     qr_code TEXT,
     FOREIGN KEY (event_id) REFERENCES event(id) ON DELETE CASCADE,
-    INDEX idx_user_event (user_id, event_id)
+    UNIQUE KEY uk_user_event (user_id, event_id),
+    INDEX idx_registration_event (event_id)
 );
 
 -- 6. Tabla: asistencia

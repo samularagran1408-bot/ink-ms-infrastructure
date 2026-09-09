@@ -7,8 +7,8 @@
 #     (Azure Database for MySQL, MongoDB Atlas o Cosmos DB con API de Mongo).
 #   - No construye imágenes: las toma de un registry. En ECS, Container Apps o
 #     Cloud Run no hay servidor donde compilar.
-#   - Sólo el gateway publica puerto. El resto se alcanza por la red interna, de
-#     modo que ninguna base de datos ni servicio interno queda expuesto.
+#   - Réplicas 2 en auth, sports y users (el gateway en VPS se queda en 1:
+#     el puerto 8080 no se puede publicar dos veces). En Azure usa scale-prod.ps1.
 #
 # Uso en un servidor propio:      docker compose -f docker-compose.prod.yml up -d
 # Uso con Azure Container Apps:   az containerapp compose create \
@@ -33,14 +33,23 @@ x-java-common: &java-common
     # validate en lugar de update: el esquema se aplica con los scripts de
     # init-mysql/, no dejando que Hibernate altere tablas en caliente.
     JPA_DDL_AUTO: ${JPA_DDL_AUTO:-validate}
+    # Pool por réplica. 2 réplicas × 10 conexiones × 5 servicios MySQL ≈ 100
+    # sesiones; el SKU de Azure Database debe permitir al menos eso.
+    SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:?falta MYSQL_USER}
+    SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:?falta MYSQL_PASSWORD}
+    SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: ${HIKARI_MAX_POOL:-10}
+    SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: ${HIKARI_MIN_IDLE:-2}
 
 services:
   auth-service:
     <<: *java-common
     image: ${REGISTRY:?falta REGISTRY}/ink-ms-auth:${TAG:-latest}
+    deploy:
+      replicas: 2
     environment:
       <<: *java-env
       MYSQL_URL: ${AUTH_MYSQL_URL:?falta AUTH_MYSQL_URL}
+      SPRING_DATASOURCE_URL: ${AUTH_MYSQL_URL:?falta AUTH_MYSQL_URL}
       MYSQL_USER: ${MYSQL_USER:?falta MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?falta MYSQL_PASSWORD}
       USERS_SERVICE_URL: http://users-service:3002
@@ -55,9 +64,12 @@ services:
   users-service:
     <<: *java-common
     image: ${REGISTRY:?falta REGISTRY}/ink-ms-users:${TAG:-latest}
+    deploy:
+      replicas: 2
     environment:
       <<: *java-env
       MYSQL_URL: ${USERS_MYSQL_URL:?falta USERS_MYSQL_URL}
+      SPRING_DATASOURCE_URL: ${USERS_MYSQL_URL:?falta USERS_MYSQL_URL}
       MYSQL_USER: ${MYSQL_USER:?falta MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?falta MYSQL_PASSWORD}
       AUTH_SERVICE_URL: http://auth-service:3001
@@ -70,9 +82,12 @@ services:
   sports-service:
     <<: *java-common
     image: ${REGISTRY:?falta REGISTRY}/ink-ms-sports:${TAG:-latest}
+    deploy:
+      replicas: 2
     environment:
       <<: *java-env
       MYSQL_URL: ${SPORTS_MYSQL_URL:?falta SPORTS_MYSQL_URL}
+      SPRING_DATASOURCE_URL: ${SPORTS_MYSQL_URL:?falta SPORTS_MYSQL_URL}
       MYSQL_USER: ${MYSQL_USER:?falta MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?falta MYSQL_PASSWORD}
       AUTH_SERVICE_URL: http://auth-service:3001
@@ -100,6 +115,7 @@ services:
     environment:
       <<: *java-env
       MYSQL_URL: ${REPORTS_MYSQL_URL:?falta REPORTS_MYSQL_URL}
+      SPRING_DATASOURCE_URL: ${REPORTS_MYSQL_URL:?falta REPORTS_MYSQL_URL}
       MYSQL_USER: ${MYSQL_USER:?falta MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?falta MYSQL_PASSWORD}
       AUTH_SERVICE_URL: http://auth-service:3001
@@ -113,6 +129,7 @@ services:
     environment:
       <<: *java-env
       MYSQL_URL: ${SUBSCRIPTIONS_MYSQL_URL:?falta SUBSCRIPTIONS_MYSQL_URL}
+      SPRING_DATASOURCE_URL: ${SUBSCRIPTIONS_MYSQL_URL:?falta SUBSCRIPTIONS_MYSQL_URL}
       MYSQL_USER: ${MYSQL_USER:?falta MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?falta MYSQL_PASSWORD}
       AUTH_SERVICE_URL: http://auth-service:3001
@@ -171,10 +188,15 @@ services:
       LLM_MODEL: ${LLM_MODEL:-google/gemma-4-31b-it:free}
       LLM_TIMEOUT: ${LLM_TIMEOUT:-120}
       LLM_COOLDOWN_SEGUNDOS: ${LLM_COOLDOWN_SEGUNDOS:-60}
+      LLM_MAX_CONCURRENT: ${LLM_MAX_CONCURRENT:-2}
+      LLM_QUEUE_WAIT_SEGUNDOS: ${LLM_QUEUE_WAIT_SEGUNDOS:-8}
+      CHAT_MAX_INFLIGHT_PER_USER: ${CHAT_MAX_INFLIGHT_PER_USER:-1}
+      CHAT_ORQUESTA_CREW: "false"
+      LLM_TOOL_CALLING_ENABLED: "false"
 
-  # Único servicio con puerto publicado: es la puerta de entrada.
-  # Debe quedar detrás de HTTPS (ingress gestionado en Container Apps, o un
-  # reverse proxy como Caddy si se despliega en un servidor propio).
+  # En VPS deja 1 réplica: el puerto 8080 del host no se puede publicar dos veces.
+  # En Azure, scale-prod.ps1 sube gateway a 2 (el ingress hace de balanceador).
+  # Debe quedar detrás de HTTPS (ingress gestionado o Caddy en servidor propio).
   gateway-service:
     image: ${REGISTRY:?falta REGISTRY}/ink-ms-gateway:${TAG:-latest}
     restart: always
