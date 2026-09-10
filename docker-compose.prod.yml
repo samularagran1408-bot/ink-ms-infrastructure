@@ -5,6 +5,8 @@
 #   - No incluye MySQL ni MongoDB. En plataformas de contenedores gestionadas el
 #     almacenamiento del contenedor es efímero, así que las bases van fuera
 #     (Azure Database for MySQL, MongoDB Atlas o Cosmos DB con API de Mongo).
+#     Si quieres las bases DENTRO de Docker (VPS con disco persistente), no uses
+#     este fichero: usa docker-compose.yml, que ya despliega mysql + mongodb.
 #   - No construye imágenes: las toma de un registry. En ECS, Container Apps o
 #     Cloud Run no hay servidor donde compilar.
 #   - Réplicas 2 en auth, sports y users (el gateway en VPS se queda en 1:
@@ -187,9 +189,13 @@ services:
       LLM_API_URL: ${LLM_API_URL:-https://openrouter.ai/api/v1/chat/completions}
       LLM_MODEL: ${LLM_MODEL:-google/gemma-4-31b-it:free}
       LLM_TIMEOUT: ${LLM_TIMEOUT:-120}
-      LLM_COOLDOWN_SEGUNDOS: ${LLM_COOLDOWN_SEGUNDOS:-60}
+      LLM_MAX_TOKENS: ${LLM_MAX_TOKENS:-2048}
+      LLM_COOLDOWN_SEGUNDOS: ${LLM_COOLDOWN_SEGUNDOS:-20}
+      LLM_COOLDOWN_TRANSITORIO_SEGUNDOS: ${LLM_COOLDOWN_TRANSITORIO_SEGUNDOS:-6}
+      LLM_REINTENTOS_POR_MODELO: ${LLM_REINTENTOS_POR_MODELO:-1}
+      LLM_CONTINUACIONES_TRUNCADO: ${LLM_CONTINUACIONES_TRUNCADO:-2}
       LLM_MAX_CONCURRENT: ${LLM_MAX_CONCURRENT:-2}
-      LLM_QUEUE_WAIT_SEGUNDOS: ${LLM_QUEUE_WAIT_SEGUNDOS:-8}
+      LLM_QUEUE_WAIT_SEGUNDOS: ${LLM_QUEUE_WAIT_SEGUNDOS:-20}
       CHAT_MAX_INFLIGHT_PER_USER: ${CHAT_MAX_INFLIGHT_PER_USER:-1}
       CHAT_ORQUESTA_CREW: "false"
       LLM_TOOL_CALLING_ENABLED: "false"

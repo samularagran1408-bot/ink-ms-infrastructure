@@ -258,8 +258,9 @@ services:
       CREWAI_TRACING_ENABLED: "false"
       CHAT_ORQUESTA_CREW: "false"
       LLM_TOOL_CALLING_ENABLED: "false"
+      LLM_MAX_TOKENS: "2048"
       LLM_MAX_CONCURRENT: "2"
-      LLM_QUEUE_WAIT_SEGUNDOS: "8"
+      LLM_QUEUE_WAIT_SEGUNDOS: "20"
       CHAT_MAX_INFLIGHT_PER_USER: "1"
     depends_on:
       mongodb:
