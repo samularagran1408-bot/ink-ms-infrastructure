@@ -267,6 +267,8 @@ services:
       CHAT_HISTORIAL_LLM_TURNOS: "3"
       CHAT_HISTORIAL_LLM_CHARS: "700"
       CHAT_MAX_INFLIGHT_PER_USER: "1"
+      CHAT_MAX_MENSAJES_POR_HORA: "20"
+      CHAT_ESPERA_LIMITE_SEGUNDOS: "3600"
     depends_on:
       mongodb:
         condition: service_healthy
