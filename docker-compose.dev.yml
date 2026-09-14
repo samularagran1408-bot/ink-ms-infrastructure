@@ -95,6 +95,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
       SPORTS_SERVICE_URL: http://sports-service:3003
+      SUBSCRIPTIONS_SERVICE_URL: http://subscriptions-service:3005
       CLOUDINARY_URL: ${CLOUDINARY_URL:-}
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
@@ -119,6 +120,7 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      SUBSCRIPTIONS_SERVICE_URL: http://subscriptions-service:3005
     depends_on:
       mysql:
         condition: service_healthy
@@ -188,11 +190,26 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      MYSQL_URL: jdbc:mysql://mysql:3306/inklusport_subscriptions?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=utf8
+      MYSQL_USER: ${MYSQL_USER:-root}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-}
+      JPA_DDL_AUTO: none
+      AUTH_SERVICE_URL: http://auth-service:3001
+      USERS_SERVICE_URL: http://users-service:3002
+      SPORTS_SERVICE_URL: http://sports-service:3003
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-465}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       MAIL_ENABLED: ${MAIL_ENABLED:-false}
       PAYMENT_GATEWAY_MODE: ${PAYMENT_GATEWAY_MODE:-mock}
       MERCADOPAGO_ACCESS_TOKEN: ${MERCADOPAGO_ACCESS_TOKEN:-}
       MERCADOPAGO_PUBLIC_KEY: ${MERCADOPAGO_PUBLIC_KEY:-}
       MERCADOPAGO_WEBHOOK_SECRET: ${MERCADOPAGO_WEBHOOK_SECRET:-}
+      MERCADOPAGO_NOTIFICATION_URL: ${MERCADOPAGO_NOTIFICATION_URL:-}
+      MERCADOPAGO_BACK_URL_SUCCESS: ${MERCADOPAGO_BACK_URL_SUCCESS:-http://localhost:8088/pagos/exito}
+      MERCADOPAGO_BACK_URL_PENDING: ${MERCADOPAGO_BACK_URL_PENDING:-http://localhost:8088/pagos/pendiente}
+      MERCADOPAGO_BACK_URL_FAILURE: ${MERCADOPAGO_BACK_URL_FAILURE:-http://localhost:8088/pagos/error}
       SUBSCRIPTION_WARNING_DAYS: ${SUBSCRIPTION_WARNING_DAYS:-7}
     depends_on:
       mysql:
