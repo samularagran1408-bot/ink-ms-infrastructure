@@ -1,0 +1,15 @@
+{
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/target": true,
+    "**/.angular": true,
+    "**/dist": true,
+    "**/coverage": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/target/**": true,
+    "**/.angular/**": true,
+    "**/dist/**": true
+  }
+}

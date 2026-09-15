@@ -1,0 +1,20 @@
+﻿# Rendimiento: no indexar artefactos ni dependencias del monorepo.
+# El .gitignore de la raíz oculta ink-ms-*; se reincluye el código fuente.
+
+!ink-ms-*/
+!ink-mcp-*/
+!ink-ms-*/**
+!ink-mcp-*/**
+
+**/node_modules/
+**/target/
+**/.angular/
+**/dist/
+**/coverage/
+**/.gradle/
+**/.idea/
+**/*.class
+**/comprobantes/
+**/.mvn/wrapper/*.jar
+postman/node_modules/
+**/*.log

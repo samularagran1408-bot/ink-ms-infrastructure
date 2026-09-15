@@ -121,6 +121,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
       SUBSCRIPTIONS_SERVICE_URL: http://subscriptions-service:3005
+      AI_SERVICE_URL: http://ai-service:3008
     depends_on:
       mysql:
         condition: service_healthy
@@ -283,12 +284,14 @@ services:
       CREWAI_TRACING_ENABLED: "false"
       CHAT_ORQUESTA_CREW: "false"
       LLM_TOOL_CALLING_ENABLED: "false"
+      LLM_SINTESIS_INTENIONES_CONOCIDAS: "false"
       LLM_TEMPERATURE: "0.2"
-      LLM_TIMEOUT: "30"
-      LLM_MAX_TOKENS: "2048"
+      LLM_TIMEOUT: "2"
+      LLM_MAX_TOKENS: "1024"
       LLM_MAX_CONCURRENT: "2"
-      LLM_QUEUE_WAIT_SEGUNDOS: "8"
-      LLM_CONTINUACIONES_TRUNCADO: "1"
+      LLM_QUEUE_WAIT_SEGUNDOS: "1"
+      LLM_REINTENTOS_POR_MODELO: "0"
+      LLM_CONTINUACIONES_TRUNCADO: "0"
       CHAT_HISTORIAL_LLM_TURNOS: "3"
       CHAT_HISTORIAL_LLM_CHARS: "700"
       CHAT_MAX_INFLIGHT_PER_USER: "1"

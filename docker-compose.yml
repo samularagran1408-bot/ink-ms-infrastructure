@@ -258,6 +258,7 @@ services:
       ACCESSIBILITY_SERVICE_URL: http://accessibility-service:3004
       USERS_SERVICE_URL: http://users-service:3002
       SUBSCRIPTIONS_SERVICE_URL: http://subscriptions-service:3005
+      AI_SERVICE_URL: http://ai-service:3008
       NOTIFICATION_ADMIN_EMAILS: ${NOTIFICATION_ADMIN_EMAILS:-}
     depends_on:
       mysql:

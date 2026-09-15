@@ -1,0 +1,14 @@
+---
+description: Filtra MCP y subagentes para no saturar el chat
+alwaysApply: true
+---
+
+# Rendimiento
+
+Este repo es InkluSport (Java/Angular/Docker). No es un workspace de Figma, Notion ni Datadog.
+
+- No uses MCP ni skills de Figma, Notion o Datadog salvo que el usuario lo pida.
+- No lances subagentes (Task, explore, best-of-n, Bugbot) salvo petición explícita o una búsqueda enorme.
+- No llames GetDynamicTools de pasada. Tools mínimas: Read, Grep, Shell.
+- Preguntas → responde. No edites ni Docker si no te lo piden.
+- No recotras el monorepo entero si el usuario nombra un micro (`ink-ms-frontend`, `ink-ms-subscriptions`, etc.).

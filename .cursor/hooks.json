@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeMCPExecution": [
+      {
+        "command": "python .cursor/hooks/filter_tools.py",
+        "failClosed": false
+      }
+    ],
+    "preToolUse": [
+      {
+        "command": "python .cursor/hooks/filter_tools.py",
+        "matcher": "GetDynamicTools|CallDynamicTool|Task|MCP:",
+        "failClosed": false
+      }
+    ],
+    "subagentStart": [
+      {
+        "command": "python .cursor/hooks/filter_tools.py",
+        "failClosed": false
+      }
+    ]
+  }
+}
