@@ -40,6 +40,9 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: admin123
       MONGO_INITDB_DATABASE: accessibility_notifications_db
     volumes:
+      # Solo se ejecuta con el volumen vacío; sobre uno existente hay que lanzar los
+      # scripts a mano (ver la cabecera de init-mongodb/01-subscriptions-schema.js).
+      - ./init-mongodb:/docker-entrypoint-initdb.d
       - mongodb_data:/data/db
     networks:
       - inklusport-network
@@ -191,10 +194,8 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
-      MYSQL_URL: jdbc:mysql://mysql:3306/inklusport_subscriptions?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=utf8
-      MYSQL_USER: ${MYSQL_USER:-root}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-}
-      JPA_DDL_AUTO: none
+      MONGODB_URI: mongodb://admin:admin123@mongodb:27017/${SUBSCRIPTIONS_MONGODB_DB:-inklusport_subscriptions}?authSource=admin
+      MONGODB_DB: ${SUBSCRIPTIONS_MONGODB_DB:-inklusport_subscriptions}
       AUTH_SERVICE_URL: http://auth-service:3001
       USERS_SERVICE_URL: http://users-service:3002
       SPORTS_SERVICE_URL: http://sports-service:3003
@@ -221,7 +222,7 @@ services:
       MERCADOPAGO_BACK_URL_FAILURE: ${MP_BACK_URL_FAILURE:-${MERCADOPAGO_BACK_URL_FAILURE:-https://inklusport.inklusport.uk/pagos/error}}
       SUBSCRIPTION_WARNING_DAYS: ${SUBSCRIPTION_WARNING_DAYS:-7}
     depends_on:
-      mysql:
+      mongodb:
         condition: service_healthy
       auth-service:
         condition: service_started
@@ -283,15 +284,16 @@ services:
       CREWAI_DISABLE_TELEMETRY: "true"
       CREWAI_TRACING_ENABLED: "false"
       CHAT_ORQUESTA_CREW: "false"
-      LLM_TOOL_CALLING_ENABLED: "false"
-      LLM_SINTESIS_INTENIONES_CONOCIDAS: "false"
+      LLM_TOOL_CALLING_ENABLED: "true"
+      LLM_SINTESIS_INTENIONES_CONOCIDAS: "true"
+      LLM_TOOL_MAX_RONDAS: "3"
       LLM_TEMPERATURE: "0.2"
-      LLM_TIMEOUT: "2"
-      LLM_MAX_TOKENS: "1024"
+      LLM_TIMEOUT: "30"
+      LLM_MAX_TOKENS: "2048"
       LLM_MAX_CONCURRENT: "2"
-      LLM_QUEUE_WAIT_SEGUNDOS: "1"
-      LLM_REINTENTOS_POR_MODELO: "0"
-      LLM_CONTINUACIONES_TRUNCADO: "0"
+      LLM_QUEUE_WAIT_SEGUNDOS: "8"
+      LLM_REINTENTOS_POR_MODELO: "1"
+      LLM_CONTINUACIONES_TRUNCADO: "1"
       CHAT_HISTORIAL_LLM_TURNOS: "3"
       CHAT_HISTORIAL_LLM_CHARS: "700"
       CHAT_MAX_INFLIGHT_PER_USER: "1"

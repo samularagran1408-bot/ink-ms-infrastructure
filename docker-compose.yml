@@ -67,6 +67,9 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-admin123}
       MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-accessibility_notifications_db}
     volumes:
+      # Solo se ejecuta con el volumen vacío; sobre uno existente hay que lanzar los
+      # scripts a mano (ver la cabecera de init-mongodb/01-subscriptions-schema.js).
+      - ./init-mongodb:/docker-entrypoint-initdb.d
       - mongodb_data:/data/db
     networks:
       - inklusport-network
@@ -123,6 +126,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-admin123}
       MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-accessibility_notifications_db}
     volumes:
+      - ./init-mongodb:/docker-entrypoint-initdb.d
       - mongodb_prod_data:/data/db
     networks:
       - inklusport-network
@@ -323,11 +327,9 @@ services:
     ports:
       - "3005:3005"
     environment:
-      <<: *mysql-client
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/inklusport_subscriptions?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      MYSQL_URL: jdbc:mysql://mysql:3306/inklusport_subscriptions?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      JPA_DDL_AUTO: none
+      MONGODB_URI: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-admin123}@mongodb:27017/${SUBSCRIPTIONS_MONGODB_DB:-inklusport_subscriptions}?authSource=admin
+      MONGODB_DB: ${SUBSCRIPTIONS_MONGODB_DB:-inklusport_subscriptions}
       JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
       AUTH_SERVICE_URL: http://auth-service:3001
@@ -356,7 +358,7 @@ services:
       MERCADOPAGO_BACK_URL_FAILURE: ${MP_BACK_URL_FAILURE:-${MERCADOPAGO_BACK_URL_FAILURE:-https://inklusport.inklusport.uk/pagos/error}}
       SUBSCRIPTION_WARNING_DAYS: ${SUBSCRIPTION_WARNING_DAYS:-7}
     depends_on:
-      mysql:
+      mongodb:
         condition: service_healthy
       auth-service:
         condition: service_started
@@ -409,7 +411,9 @@ services:
       CREWAI_DISABLE_TELEMETRY: "true"
       CREWAI_TRACING_ENABLED: "false"
       CHAT_ORQUESTA_CREW: "false"
-      LLM_TOOL_CALLING_ENABLED: "false"
+      LLM_TOOL_CALLING_ENABLED: "true"
+      LLM_SINTESIS_INTENIONES_CONOCIDAS: "true"
+      LLM_TOOL_MAX_RONDAS: "3"
       LLM_TEMPERATURE: "0.2"
       LLM_TIMEOUT: "30"
       LLM_MAX_TOKENS: "2048"
