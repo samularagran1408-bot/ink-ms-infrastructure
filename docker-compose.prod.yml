@@ -124,6 +124,11 @@ services:
       USERS_SERVICE_URL: http://users-service:3002
       SPORTS_SERVICE_URL: http://sports-service:3003
       ACCESSIBILITY_SERVICE_URL: http://accessibility-service:3004
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-465}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
 
   subscriptions-service:
     <<: *java-common

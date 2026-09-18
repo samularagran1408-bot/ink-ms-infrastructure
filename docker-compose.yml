@@ -312,6 +312,16 @@ services:
       MYSQL_URL: jdbc:mysql://mysql:3306/analytics_ms?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      AUTH_SERVICE_URL: http://auth-service:3001
+      USERS_SERVICE_URL: http://users-service:3002
+      SPORTS_SERVICE_URL: http://sports-service:3003
+      ACCESSIBILITY_SERVICE_URL: http://accessibility-service:3004
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-465}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_PROTOCOL: ${MAIL_PROTOCOL:-smtps}
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
     depends_on:
       mysql:
         condition: service_healthy
@@ -357,6 +367,8 @@ services:
       MERCADOPAGO_BACK_URL_PENDING: ${MP_BACK_URL_PENDING:-${MERCADOPAGO_BACK_URL_PENDING:-https://inklusport.inklusport.uk/pagos/pendiente}}
       MERCADOPAGO_BACK_URL_FAILURE: ${MP_BACK_URL_FAILURE:-${MERCADOPAGO_BACK_URL_FAILURE:-https://inklusport.inklusport.uk/pagos/error}}
       SUBSCRIPTION_WARNING_DAYS: ${SUBSCRIPTION_WARNING_DAYS:-7}
+    volumes:
+      - subscriptions_comprobantes:/app/comprobantes
     depends_on:
       mongodb:
         condition: service_healthy
@@ -505,3 +517,4 @@ volumes:
   mysql_prod_data:
   mongodb_prod_data:
   ollama_models:
+  subscriptions_comprobantes:

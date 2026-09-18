@@ -1,0 +1,28 @@
+---
+description: Regla de negocio RF55/RF57 — inscripción a eventos de pago (cobro obligatorio desde la primera vez)
+globs: ink-ms-frontend/**/events-page/**,ink-ms-frontend/**/subscriptions/**,ink-ms-subscriptions/**/PagoEvento*,ink-ms-subscriptions/**/ConfiguracionEventoPago*
+alwaysApply: false
+---
+
+# Inscripción a eventos de pago (RF55 / RF57 / RF63)
+
+## Requisito (producto)
+
+Cuando el **organizador** (o un **administrador**, según rol) tiene un **plan de suscripción** vigente y configura un evento como de pago:
+
+1. Todo atleta que se inscriba debe **pagar la inscripción** vía pasarela (Mercado Pago / checkout).
+2. El cobro aplica **también la primera vez** que se inscribe: no hay inscripción gratuita de prueba ni “primer evento gratis”.
+3. El **plan del organizador** define la **comisión de plataforma** (y límites del plan); no sustituye la tarifa del evento.
+4. La inscripción en `ink-ms-sports` solo debe quedar confirmada **después** del pago aprobado (o del flujo de pago correspondiente), nunca antes “por si acaso”.
+
+## Comportamiento obligatorio en código
+
+- Antes de `sportsService.registerToEvent()`, consultar la configuración de pago del evento (`obtenerConfiguracionEvento` / `esPago`).
+- Si `esPago === true` → ir al checkout (`inscribirse` / preferencia MP). **No** llamar a sports para inscribir gratis.
+- Si el evento no es de pago (o no tiene config) → inscripción gratuita en sports.
+- Un fallo/timeout al consultar la config **no** debe convertirse en inscripción gratuita silenciosa en escenarios de pago (evitar `catchError → esPago: false` como único camino si se está endureciendo el flujo).
+
+## Fuera de alcance de esta regla
+
+- No implica que *todos* los eventos del sistema sean de pago por defecto: el organizador marca `esPago` y el valor por evento (`…/events/:eventoId/pago-config`).
+- El plan no “enciende” cobro automático en cada evento; habilita el modelo de negocio (comisión) cuando el evento sí es de pago.
